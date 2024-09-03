@@ -1,4 +1,4 @@
-# ip-location-api [![NPM version](https://badge.fury.io/js/ip-location-api.svg)](https://badge.fury.io/js/ip-api)
+# ip-location-api [![NPM version](https://badge.fury.io/js/ip-location-api.svg)](https://badge.fury.io/js/ip-location-api)
 
 Fast and customizable nodejs api to get geolocation information from ip address.
 `ip-location-api` make a fast lookup by using in-memory database.
