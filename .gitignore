@@ -1,0 +1,5 @@
+node_modules
+/tmp
+/data/city*
+/data/v*
+/data/*.sha256

@@ -1,0 +1,56 @@
+There are three licenses, one for the software library, and one for the datadata.
+This product includes GeoLite2 data created by MaxMind, available from http://maxmind.com/.
+
+If you want to avoid GeoLite2 licence, you can do so by changing the database from ip-location-db in the README to the CC0 licence data base.
+
+
+----------------------------------------------
+SOFTWARE LICENSE
+----------------------------------------------
+
+"ip-location-api" library is published under MIT License.
+Copyright 2024 sapics <https://github.com/sapics>
+
+
+----------------------------------------------
+DATABSE LICENSE (Countries databases)
+----------------------------------------------
+
+Countries (https://github.com/annexare/Countries) is 
+published under MIT LICENSE by Annexare Studio (https://annexare.com/).
+
+
+----------------------------------------------
+DATABSE LICENSE (GeoLite2 databases)
+----------------------------------------------
+By downloading or using the "ip-location-api" software library (published
+to the Node Package Manager at https://www.npmjs.com/package/ip-location-api,
+thereafter the "Library"), you agree to be bound by the terms and
+conditions of this License.
+
+The Library redistributes copyrighted data (the "GeoLite2 Databases")
+that is property of MaxMind, Inc. ("MaxMind"), and which use is bound
+by the terms and conditions of the MaxMind's End User License Agreement
+(the "Agreement"). You should have received an archived copy of the
+Agreement with the Library (see EULA), but this License shall only
+refer to the latest revision which can be found at
+https://www.maxmind.com/en/geolite2/eula.
+
+The database comes with certain restrictions and obligations, most notably:
+- You cannot prevent the library from updating the databases.
+- You cannot use the GeoLite2 data:
+  - for FCRA purposes,
+  - to identify specific households or individuals.
+
+The present License incorporates all the terms and conditions of said
+Agreement. Your use of the Library must honor those terms.
+
+Additionally, (i) you may not redistribute the Library itself under
+different terms and conditions, (ii) you may not remove or obscure any
+copyright notice, (iii) you may not prevent the Library from updating
+local copies of the GeoLite2 Databases to honor Do Not Sell requests
+submitted to MaxMind.
+
+GeoLite2 database is provided under CC BY-SA 4.0 by MaxMind, so,
+you must create attribusion to MaxMind for using GeoLite2 database.
+https://creativecommons.org/licenses/by-sa/4.0/legalcode
