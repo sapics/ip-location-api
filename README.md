@@ -19,7 +19,6 @@ You can change the memory usage or lookup time, by customizing location informat
 ## Synopsis
 
 ```javascript
-// ESM
 import { lookup } from 'ip-location-api'
 // or CJS format
 // const { lookup } = require('ip-location-api')
