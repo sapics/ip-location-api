@@ -22,7 +22,7 @@ jobs:
       - name: test
         run: npm run test
       - name: commit
-        run: scripts/release.sh
+        run: script/auto-update.sh
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: push changes

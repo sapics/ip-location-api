@@ -64,6 +64,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-strip": "^3.0.4",
     "@rollup/plugin-terser": "^0.4.4",
+    "dayjs": "^1.11.13",
     "doc999tor-fast-geoip": "^1.1.253",
     "eslint": "^8.57.0",
     "geoip-country": "^5.0.202408302251",
