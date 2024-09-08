@@ -12,8 +12,8 @@ You can change the memory usage or lookup time, by customizing location informat
 | ip-location-api<br>(async)   | country | 2.9 MB  | 2 ms  | 243 μs/ip   | 255 μs/ip   |
 | ip-location-api              | city    | 62.9 MB | 14 ms | 0.751 μs/ip | 1.064 μs/ip |
 | ip-location-api<br>(async)   | city    | 15.6 MB | 5 ms  | 267 μs/ip   | 271 μs/ip   |
-| geoip-lite                   | city    | 136 MB  | 54 ms | 1.616 μs/ip | 3.890 μs/ip |
-| fast-geoip<br>(async)        | city    | 0MB     | 4 ms  | 1714 μs/ip  | cannot lookup |
+| [geoip-lite](https://github.com/geoip-lite/node-geoip)                  | city    | 136 MB  | 54 ms | 1.616 μs/ip | 3.890 μs/ip |
+| [fast-geoip](https://github.com/Doc999tor/fast-geoip)<br>(async)        | city    | 0MB     | 4 ms  | 1714 μs/ip  | cannot lookup |
 
 
 ## Synopsis
