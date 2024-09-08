@@ -1,6 +1,6 @@
 {
   "name": "ip-location-api",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Fast location lookup from IP address",
   "keywords": [
     "location",
