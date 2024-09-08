@@ -45,8 +45,6 @@
   "files": [
     "src/*.mjs",
     "cjs/*.cjs",
-    "data/4-*.dat",
-    "data/6-*.dat",
     "spec",
     "script/*.mjs",
     "script/*.cjs",
