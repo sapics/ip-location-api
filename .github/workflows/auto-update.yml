@@ -1,7 +1,5 @@
 name: Auto database update
 on:
-  schedule:
-    - cron: '24 21,23 * * Tue,Wed,Fri,Sat'
   workflow_dispatch:
 jobs:
   release:

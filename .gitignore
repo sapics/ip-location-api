@@ -3,3 +3,4 @@ node_modules
 /data/city*
 /data/v*
 /data/*.sha256
+/data/*.dat

@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "test": "npx jasmine",
+    "postinstall": "node script/updatedb-first.mjs",
     "updatedb": "node script/updatedb.mjs",
     "updatedb-cjs": "node script/updatedb.cjs",
     "cjs": "node script/convert-to-cjs.mjs"
