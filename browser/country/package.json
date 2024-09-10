@@ -24,9 +24,9 @@
 		"access": "public"
 	},
 	"license": "MIT",
-	"main": "ip_lookup.cjs",
+	"main": "iplookup.cjs",
 	"exports": {
-		"import": "./ip_lookup.mjs",
-		"require": "./ip_lookup.cjs"
+		"import": "./iplookup.mjs",
+		"require": "./iplookup.cjs"
 	}
 }

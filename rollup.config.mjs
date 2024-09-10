@@ -9,7 +9,7 @@ export default [
   {
     input: 'src/browser.mjs',
     output: {
-      file: 'browser/country/ip_lookup.js',
+      file: 'browser/country/iplookup.js',
       format: 'iife',
       name: 'IpLookup',
     },
@@ -27,7 +27,7 @@ export default [
   {
     input: 'src/browser-extra.mjs',
     output: {
-      file: 'browser/country-extra/ip_lookup.js',
+      file: 'browser/country-extra/iplookup.js',
       format: 'iife',
       name: 'IpLookup',
     },
@@ -47,7 +47,7 @@ export default [
   {
     input: 'src/browser.mjs',
     output: {
-      file: 'browser/country/ip_lookup.min.js',
+      file: 'browser/country/iplookup.min.js',
       format: 'iife',
       name: 'IpLookup',
     },
@@ -66,7 +66,7 @@ export default [
   {
     input: 'src/browser-extra.mjs',
     output: {
-      file: 'browser/country-extra/ip_lookup.min.js',
+      file: 'browser/country-extra/iplookup.min.js',
       format: 'iife',
       name: 'IpLookup',
     },
@@ -87,7 +87,7 @@ export default [
   {
     input: 'src/browser.mjs',
     output: {
-      file: 'browser/country/ip_lookup.cjs',
+      file: 'browser/country/iplookup.cjs',
       format: 'cjs',
       name: 'IpLookup',
     },
@@ -105,7 +105,7 @@ export default [
   {
     input: 'src/browser-extra.mjs',
     output: {
-      file: 'browser/country-extra/ip_lookup.cjs',
+      file: 'browser/country-extra/iplookup.cjs',
       format: 'cjs',
       name: 'IpLookup',
     },
@@ -125,7 +125,7 @@ export default [
   {
     input: 'src/browser.mjs',
     output: {
-      file: 'browser/country/ip_lookup.mjs',
+      file: 'browser/country/iplookup.mjs',
       format: 'es',
       name: 'IpLookup',
     },
@@ -143,7 +143,7 @@ export default [
   {
     input: 'src/browser-extra.mjs',
     output: {
-      file: 'browser/country-extra/ip_lookup.mjs',
+      file: 'browser/country-extra/iplookup.mjs',
       format: 'es',
       name: 'IpLookup',
     },
