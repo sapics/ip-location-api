@@ -1,5 +1,9 @@
 # @iplookup/country [![NPM version](https://badge.fury.io/js/@iplookup/country)](https://badge.fury.io/js/@iplookup/country)
 
+This is an API created to make [ip-location-api](https://github.com/sapics/ip-location-api) available for browsers.
+The database itself is large at 7MB, so it is splitted into over 2000 pieces for fast downloading in a browser.
+
+
 ## Synopsis
 
 ```html

@@ -39,10 +39,21 @@
   "main": "cjs/main.cjs",
   "module": "src/main.mjs",
   "exports": {
-    "import": "./src/main.mjs",
-    "require": "./cjs/main.cjs",
-    "node": "./src/main.mjs",
-    "default": "./cjs/main.cjs"
+    ".": {
+      "import": "./src/main.mjs",
+      "require": "./cjs/main.cjs",
+      "default": "./cjs/main.cjs"
+    },
+    "./country": {
+      "import": "./browser/country/lookup.mjs",
+      "require": "./browser/country/lookup.cjs",
+      "default": "./browser/country/lookup.cjs"
+    },
+    "./country-extra": {
+      "import": "./browser/country-extra/lookup.mjs",
+      "require": "./browser/country-extra/lookup.cjs",
+      "default": "./browser/country-extra/lookup.cjs"
+    }
   },
   "files": [
     "src/*.mjs",
