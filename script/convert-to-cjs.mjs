@@ -9,6 +9,7 @@ var __dirname = path.dirname(__filename)
 var files = fsSync.readdirSync(path.resolve(__dirname, '..', 'src'))
 
 for(var file of files){
+	if(file.startsWith('browser')) continue;
 	if(file.endsWith('.mjs')){
 		var src = fsSync.readFileSync(path.resolve(__dirname, '..', 'src', file), 'utf8')
 		var exportList = []

@@ -24,6 +24,8 @@ const defaultSetting = {
 
 	sameDbSetting: false,
 	multiDbDir: false,
+
+	browserType: false
 }
 
 const setting = {

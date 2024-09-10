@@ -1,6 +1,6 @@
 {
   "name": "ip-location-api",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Fast location lookup from IP address",
   "keywords": [
     "location",
@@ -20,7 +20,6 @@
     "test": "npx jasmine",
     "postinstall": "node script/updatedb-first.mjs",
     "updatedb": "node script/updatedb.mjs",
-    "updatedb-cjs": "node script/updatedb.cjs",
     "updatedb-browser": "node script/updatedb.mjs ILA_BROWSER_TYPE=country ILA_IP_LOCATION_DB=geo-whois-asn",
     "browser": "npx http-server browser -p 8321",
     "cjs": "node script/convert-to-cjs.mjs"

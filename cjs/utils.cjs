@@ -135,6 +135,7 @@ const getZeroFill = (num, len) => {
 }
 
 const getUnderberFill = (num, len) => {
+	if(num.length > len) return num
   return '_'.repeat(len - num.length) + num
 }
 const numberToDir = (num) => {
