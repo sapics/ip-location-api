@@ -5,7 +5,7 @@ import { IndexLineEnd, downloadBuffer } from './browser_utils.mjs'
 //const TOP_URL = 'https://cdn.test.com/data/'
 // const TOP_URL = 'country/'
 
-const TOP_URL = document.currentScript.src.split('/').slice(0, -1).join('/') + '/'
+const TOP_URL = __CDNURL__ || document.currentScript.src.split('/').slice(0, -1).join('/') + '/'
 
 const MAIN_RECORD_SIZE = 2
 

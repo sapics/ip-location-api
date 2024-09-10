@@ -1,6 +1,6 @@
 {
 	"name": "@iplookup/country",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Browser api to lookup country from IP address",
 	"keywords": [
 		"location",
@@ -20,6 +20,13 @@
 		"type": "git",
 		"url": "git://github.com/sapics/ip-location-api.git"
 	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"license": "MIT",
-	"main": "ip_lookup.min.js"
+	"main": "ip_lookup.cjs",
+	"exports": {
+		"import": "./ip_lookup.mjs",
+		"require": "./ip_lookup.cjs"
+	}
 }
