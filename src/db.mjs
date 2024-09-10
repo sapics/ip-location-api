@@ -170,8 +170,12 @@ const createBrowserIndex = async (type) => {
 	}
 	await fs.writeFile(path.join(exportDir, '6.idx'), Buffer.from(indexList.buffer))
 
-	await fs.cp(exportDir, path.join(__dirname, '..', 'browser', type), {recursive: true})
-	await fs.cp(exportDir, path.join(__dirname, '..', 'browser', type + '-extra'), {recursive: true})
+	var exPath = path.join(__dirname, '..', 'browser', type)
+	await fs.rm(exPath, {recursive: true, force: true})
+	await fs.cp(exportDir, exPath, {recursive: true})
+	exPath = path.join(__dirname, '..', 'browser', type + '-extra')
+	await fs.rm(exPath, {recursive: true, force: true})
+	await fs.cp(exportDir, exPath, {recursive: true})
 }
 
 var SHA256_RESULT
