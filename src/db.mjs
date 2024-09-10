@@ -1,6 +1,7 @@
 import fs from 'fs/promises'
 import fsSync from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { createHash } from 'crypto'
 
 import axios from 'axios'
@@ -8,7 +9,10 @@ import { parse } from '@fast-csv/parse'
 import { Address4, Address6 } from 'ip-address'
 
 import { setting } from './setting.mjs'
-import { getPostcodeDatabase, strToNum37, aton4, aton6, getSmallMemoryFile } from './utils.mjs'
+import { getPostcodeDatabase, strToNum37, aton4, aton6, getSmallMemoryFile, numberToDir } from './utils.mjs'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const rimraf = (dir) => {
 	if(fs.rm){
@@ -73,6 +77,11 @@ export const update = async () => {
 		await fs.rename(path.join(setting.dataDir, 'v4-tmp'), path.join(setting.dataDir, 'v4'))
 		await fs.rename(path.join(setting.dataDir, 'v6-tmp'), path.join(setting.dataDir, 'v6'))
 	}
+
+	if(setting.browserType){
+		await createBrowserIndex(setting.browserType)
+	}
+
 	console.log('SUCCESS TO UPDATE')
 }
 
@@ -103,6 +112,66 @@ const _ipLocationDb = async (url) => {
 			ws.on('error', reject)
 		})
 	})
+}
+
+import { IndexSize } from './browser_utils.mjs'
+const createBrowserIndex = async (type) => {
+	const exportDir = path.join(setting.dataDir, type)
+	await fs.mkdir(path.join(exportDir, '4'), {recursive: true})
+	await fs.mkdir(path.join(exportDir, '6'), {recursive: true})
+
+	var startBuf = await fs.readFile(path.join(setting.dataDir, '4-1.dat'))
+	var startList = new Uint32Array(startBuf.buffer)
+	var len = startList.length, indexList = new Uint32Array(IndexSize)
+	var i, j, k
+	var endBuf = await fs.readFile(path.join(setting.dataDir, '4-2.dat'))
+	var endList = new Uint32Array(endBuf.buffer)
+	var dbInfo = await fs.readFile(path.join(setting.dataDir, '4-3.dat'))
+	var dbList = new Uint16Array(dbInfo.buffer)
+	var recordSize = setting.mainRecordSize + 8
+	for(i = 0; i < IndexSize; ++i){
+		var index = len * i / IndexSize | 0
+		indexList[i] = startList[index]
+		var nextIndex = len * (i + 1) / IndexSize | 0
+		var count = nextIndex - index
+		var exportBuf = Buffer.alloc(recordSize * count)
+		for(j = index, k = 0; j < nextIndex; ++j){
+			exportBuf.writeUInt32LE(startList[j], k * 4)
+			exportBuf.writeUInt32LE(endList[j], 4 * count + k * 4)
+			exportBuf.writeUInt16LE(dbList[j], 8 * count + k * setting.mainRecordSize)
+			++k
+		}
+		await fs.writeFile(path.join(exportDir, '4', numberToDir(i)), exportBuf)
+	}
+	await fs.writeFile(path.join(exportDir, '4.idx'), Buffer.from(indexList.buffer))
+
+	startBuf = await fs.readFile(path.join(setting.dataDir, '6-1.dat'))
+	startList = new BigUint64Array(startBuf.buffer)
+	len = startList.length
+	indexList = new BigUint64Array(IndexSize)
+	endBuf = await fs.readFile(path.join(setting.dataDir, '6-2.dat'))
+	endList = new BigUint64Array(endBuf.buffer)
+	dbInfo = await fs.readFile(path.join(setting.dataDir, '6-3.dat'))
+	dbList = new Uint16Array(dbInfo.buffer)
+	recordSize = setting.mainRecordSize + 16
+	for(i = 0; i < IndexSize; ++i){
+		var index = len * i / IndexSize | 0
+		indexList[i] = startList[index]
+		var nextIndex = len * (i + 1) / IndexSize | 0
+		var exportBuf = Buffer.alloc(recordSize * (nextIndex - index))
+		var count = nextIndex - index
+		for(j = index, k = 0; j < nextIndex; ++j){
+			exportBuf.writeBigUInt64LE(startList[j], k * 8)
+			exportBuf.writeBigUInt64LE(endList[j], 8 * count + k * 8)
+			exportBuf.writeUInt16LE(dbList[j], 16 * count + k * setting.mainRecordSize)
+			++k
+		}
+		await fs.writeFile(path.join(exportDir, '6', numberToDir(i)), exportBuf)
+	}
+	await fs.writeFile(path.join(exportDir, '6.idx'), Buffer.from(indexList.buffer))
+
+	await fs.cp(exportDir, path.join(__dirname, '..', 'browser', type), {recursive: true})
+	await fs.cp(exportDir, path.join(__dirname, '..', 'browser', type + '-extra'), {recursive: true})
 }
 
 var SHA256_RESULT

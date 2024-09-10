@@ -3,7 +3,7 @@ import { lookup } from '../src/main.mjs'
 describe('lookup', () => {
 	console.log('MJS lookup')
 	it('lookup', ()  => {
-		var ips = ['1.0.65.0', '2001:4860:b002::68', '2001:df3:e900::']
+		var ips = ['1.0.65.0', '154.45.200.16', '2001:4860:b002::68', '2001:df3:e900::']
 		var success = 0
 		for(var ip of ips){
 			var result = lookup(ip)

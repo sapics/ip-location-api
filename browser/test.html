@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>TEST</title>
+	<script type="text/javascript" src="country/ip_lookup.js"></script>
+</head>
+<body>
+	<h1>TEST</h1>
+	<input type="text" id="ip" name="ip" placeholder="Enter ip address">
+	<button id="ok">START IP LOOKUP!!</button>
+	<h2>EXPORT INFORMATION</h2>
+	<div id="info"></div>
+</body>
+<script type="text/javascript">
+	var ip = document.getElementById('ip');
+	var ok = document.getElementById('ok');
+	ok.addEventListener('click', async function(event){
+		var info = await IpLookup(ip.value);
+		document.getElementById('info').innerHTML = JSON.stringify(info);
+	});
+</script>
+</html>

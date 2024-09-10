@@ -26,6 +26,8 @@ const defaultSetting = {
 
 	sameDbSetting: false,
 	multiDbDir: false,
+
+	browserType: false
 }
 
 // default setting
