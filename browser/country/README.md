@@ -15,6 +15,20 @@ console.log(location) // {country: 'FR'}
 </script>
 ```
 
+#### ESM
+
+```javascript
+import IpLookup from '@iplookup/country'
+await IpLookup("207.97.227.239")
+```
+
+#### CJS
+
+```javascript
+const IpLookup = require('@iplookup/country')
+await IpLookup("207.97.227.239")
+```
+
 If you need extra information about country, try to use [@iplookup/country-extra](https://github.com/sapics/ip-location-api/tree/main/browser/country-extra).
 
 
