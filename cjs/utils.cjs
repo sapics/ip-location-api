@@ -2,13 +2,13 @@
 const path = require('path')
 
 
-
-
-
-
-
-
-
+const countryCodeToNum = (code) => { // 0~675
+	code = code.toUpperCase()
+	return (code.charCodeAt(0)-65)*26 + (code.charCodeAt(1)-65)
+}
+const numToCountryCode = (num) => {
+	return String.fromCharCode((num/26|0) + 65, num % 26 + 65)
+}
 
 const getFieldsSize = (types) => {
 	var size = 0
@@ -196,4 +196,4 @@ const getPostcodeDatabase = (postcode) => {
 	]
 }
 
-module.exports={getFieldsSize:getFieldsSize,ntoa4:ntoa4,aton4:aton4,aton6Start:aton6Start,aton6:aton6,v4Mapped:v4Mapped,isPrivateIP:isPrivateIP,strToNum37:strToNum37,num37ToStr:num37ToStr,getZeroFill:getZeroFill,numberToDir:numberToDir,getSmallMemoryFile:getSmallMemoryFile,getPostcodeDatabase:getPostcodeDatabase}
+module.exports={countryCodeToNum:countryCodeToNum,numToCountryCode:numToCountryCode,getFieldsSize:getFieldsSize,ntoa4:ntoa4,aton4:aton4,aton6Start:aton6Start,aton6:aton6,v4Mapped:v4Mapped,isPrivateIP:isPrivateIP,strToNum37:strToNum37,num37ToStr:num37ToStr,getZeroFill:getZeroFill,numberToDir:numberToDir,getSmallMemoryFile:getSmallMemoryFile,getPostcodeDatabase:getPostcodeDatabase}

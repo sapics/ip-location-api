@@ -3,13 +3,13 @@ import path from 'path'
 // export const DEBUG = process.argv.includes('debug')
 
 //export const MaxLocationId = 0xFFFFFFFF - 26*26
-//export const countryCodeToNum = (code) => {
-//	code = code.toUpperCase()
-//	return (code.charCodeAt(0)-65)*26 + (code.charCodeAt(1)-65)
-//}
-//export const numToCountryCode = (num) => {
-//	return String.fromCharCode((num/26|0) + 65, num % 26 + 65)
-//}
+export const countryCodeToNum = (code) => { // 0~675
+	code = code.toUpperCase()
+	return (code.charCodeAt(0)-65)*26 + (code.charCodeAt(1)-65)
+}
+export const numToCountryCode = (num) => {
+	return String.fromCharCode((num/26|0) + 65, num % 26 + 65)
+}
 
 export const getFieldsSize = (types) => {
 	var size = 0

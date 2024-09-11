@@ -4,13 +4,15 @@ const fsSync = require('fs')
 const path = require('path')
 const { fileURLToPath } = require('url')
 const { createHash } = require('crypto')
+const { pipeline } = require('stream/promises';)
 
 const axios = require('axios')
 const { parse } = require('@fast-csv/parse')
 const { Address4, Address6 } = require('ip-address')
+const dayjs = require('dayjs')
 
 const { setting } = require('./setting.cjs')
-const { getPostcodeDatabase, strToNum37, aton4, aton6, getSmallMemoryFile, numberToDir } = require('./utils.cjs')
+const { getPostcodeDatabase, strToNum37, aton4, aton6, getSmallMemoryFile, numberToDir, countryCodeToNum } = require('./utils.cjs')
 
 
 const rimraf = (dir) => {
@@ -33,6 +35,11 @@ const update = async () => {
 	}
 
 	console.log('Downloading database')
+	if(setting.browserType === 'geocode'){
+		await dbipLocation()
+		return createBrowserIndex(setting.browserType)
+	}
+
 	if(setting.ipLocationDb){
 		srcList = await ipLocationDb(setting.ipLocationDb.replace(/-country$/, ''))
 	} else {
@@ -110,11 +117,81 @@ const _ipLocationDb = async (url) => {
 	})
 }
 
-const { IndexSize } = require('./browser_utils.cjs')
+const dbipLocation = async () => {
+	const address = "https://download.db-ip.com/free/dbip-city-lite-" + dayjs().format('YYYY-MM') + ".csv.gz"
+	const res = await fetch(address)
+	const tmpFile = path.join(setting.tmpDataDir, 'dbip-city-lite.csv')
+	const ws = fsSync.createWriteStream(tmpFile)
+	await pipeline(res.body.pipeThrough(new DecompressionStream('gzip')), ws)
+	return new Promise((resolve, reject) => {
+		const v4 = [], v6 = []
+		var preData
+		fsSync.createReadStream(tmpFile).pipe(parse())
+			.on('error', reject)
+			.on('end', () => {
+				var v4Buf1 = Buffer.alloc(v4.length * 4)
+				var v4Buf2 = Buffer.alloc(v4.length * 4)
+				var v4Buf3 = Buffer.alloc(v4.length * 8)
+				for(var i = 0; i < v4.length; ++i){
+					v4Buf1.writeUInt32LE(v4[i][0], i * 4)
+					v4Buf2.writeUInt32LE(v4[i][1], i * 4)
+					v4Buf3.writeInt32LE(v4[i][2], i * 8)
+					v4Buf3.writeInt32LE(v4[i][3], i * 8 + 4)
+				}
+				fsSync.writeFileSync(path.join(setting.dataDir, '4-1.dat'), v4Buf1)
+				fsSync.writeFileSync(path.join(setting.dataDir, '4-2.dat'), v4Buf2)
+				fsSync.writeFileSync(path.join(setting.dataDir, '4-3.dat'), v4Buf3)
+		
+				var v6Buf1 = Buffer.alloc(v6.length * 8)
+				var v6Buf2 = Buffer.alloc(v6.length * 8)
+				var v6Buf3 = Buffer.alloc(v6.length * 8)
+				for(var i = 0; i < v6.length; ++i){
+					v6Buf1.writeBigUInt64LE(v6[i][0], i * 8)
+					v6Buf2.writeBigUInt64LE(v6[i][1], i * 8)
+					v6Buf3.writeInt32LE(v6[i][2], i * 8)
+					v6Buf3.writeInt32LE(v6[i][3], i * 8 + 4)
+				}
+				fsSync.writeFileSync(path.join(setting.dataDir, '6-1.dat'), v6Buf1)
+				fsSync.writeFileSync(path.join(setting.dataDir, '6-2.dat'), v6Buf2)
+				fsSync.writeFileSync(path.join(setting.dataDir, '6-3.dat'), v6Buf3)
+				resolve()
+			})
+			.on('data', arr => {
+				if(!arr[2] || arr[3] === 'ZZ' || arr[3] === 'EU') return;
+				var latitude = Math.round((parseFloat(arr[6])) * 10000) // -90 ~ 90 -> 10 ~ 190
+
+				var longitude = Math.round((parseFloat(arr[7])) * 10000)// -180 ~ 180 -> 20 ~ 220
+
+				var countryCodeNum = countryCodeToNum(arr[3]) // 0 ~ 675
+				latitude = (latitude) << 10 | countryCodeNum
+				if(arr[0].includes(':')){
+					var start = aton6(arr[0])
+					if(preData[1].constructor !== BigInt) preData = null
+					if(preData && preData[1] + 1n === start && preData[2] === latitude && preData[3] === longitude){
+						preData[1] = aton6(arr[1])
+						return
+					}
+					v6.push(preData = [aton6(arr[0]), aton6(arr[1]), latitude, longitude])
+				} else {
+					var start = aton4(arr[0])
+					if(preData && preData[1] + 1 === start && preData[2] === latitude && preData[3] === longitude){
+						preData[1] = aton4(arr[1])
+						return
+					}
+					v4.push(preData = [aton4(arr[0]), aton4(arr[1]), latitude, longitude])
+				}
+			})
+	})
+}
+
 const createBrowserIndex = async (type) => {
 	const exportDir = path.join(setting.dataDir, type)
+	await fs.rm(path.join(exportDir, '4'), {recursive: true, force: true})
 	await fs.mkdir(path.join(exportDir, '4'), {recursive: true})
+	await fs.rm(path.join(exportDir, '6'), {recursive: true, force: true})
 	await fs.mkdir(path.join(exportDir, '6'), {recursive: true})
+
+	const IndexSize = type === 'country' ? 1024 : 2048
 
 	var startBuf = await fs.readFile(path.join(setting.dataDir, '4-1.dat'))
 	var startList = new Uint32Array(startBuf.buffer)
@@ -123,7 +200,7 @@ const createBrowserIndex = async (type) => {
 	var endBuf = await fs.readFile(path.join(setting.dataDir, '4-2.dat'))
 	var endList = new Uint32Array(endBuf.buffer)
 	var dbInfo = await fs.readFile(path.join(setting.dataDir, '4-3.dat'))
-	var dbList = new Uint16Array(dbInfo.buffer)
+	var dbList =  type === 'country' ? new Uint16Array(dbInfo.buffer) : new Int32Array(dbInfo.buffer)
 	var recordSize = setting.mainRecordSize + 8
 	for(i = 0; i < IndexSize; ++i){
 		var index = len * i / IndexSize | 0
@@ -134,7 +211,12 @@ const createBrowserIndex = async (type) => {
 		for(j = index, k = 0; j < nextIndex; ++j){
 			exportBuf.writeUInt32LE(startList[j], k * 4)
 			exportBuf.writeUInt32LE(endList[j], 4 * count + k * 4)
-			exportBuf.writeUInt16LE(dbList[j], 8 * count + k * setting.mainRecordSize)
+			if(type === 'country'){
+				exportBuf.writeUInt16LE(dbList[j], 8 * count + k * setting.mainRecordSize)
+			} else {
+				exportBuf.writeInt32LE(dbList[2*j],   8 * count + k * setting.mainRecordSize)
+				exportBuf.writeInt32LE(dbList[2*j+1], 8 * count + k * setting.mainRecordSize + 4)
+			}
 			++k
 		}
 		await fs.writeFile(path.join(exportDir, '4', numberToDir(i)), exportBuf)
@@ -148,7 +230,7 @@ const createBrowserIndex = async (type) => {
 	endBuf = await fs.readFile(path.join(setting.dataDir, '6-2.dat'))
 	endList = new BigUint64Array(endBuf.buffer)
 	dbInfo = await fs.readFile(path.join(setting.dataDir, '6-3.dat'))
-	dbList = new Uint16Array(dbInfo.buffer)
+	dbList = type === 'country' ? new Uint16Array(dbInfo.buffer) : new Int32Array(dbInfo.buffer)
 	recordSize = setting.mainRecordSize + 16
 	for(i = 0; i < IndexSize; ++i){
 		var index = len * i / IndexSize | 0
@@ -159,7 +241,12 @@ const createBrowserIndex = async (type) => {
 		for(j = index, k = 0; j < nextIndex; ++j){
 			exportBuf.writeBigUInt64LE(startList[j], k * 8)
 			exportBuf.writeBigUInt64LE(endList[j], 8 * count + k * 8)
-			exportBuf.writeUInt16LE(dbList[j], 16 * count + k * setting.mainRecordSize)
+			if(type === 'country'){
+				exportBuf.writeUInt16LE(dbList[j], 16 * count + k * setting.mainRecordSize)
+			} else {
+				exportBuf.writeInt32LE(dbList[2*j],   16 * count + k * setting.mainRecordSize)
+				exportBuf.writeInt32LE(dbList[2*j+1], 16 * count + k * setting.mainRecordSize + 4)
+			}
 			++k
 		}
 		await fs.writeFile(path.join(exportDir, '6', numberToDir(i)), exportBuf)

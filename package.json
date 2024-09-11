@@ -20,7 +20,8 @@
     "test": "npx jasmine",
     "postinstall": "node script/updatedb-first.mjs",
     "updatedb": "node script/updatedb.mjs",
-    "updatedb-browser": "node script/updatedb.mjs ILA_BROWSER_TYPE=country ILA_IP_LOCATION_DB=geo-whois-asn",
+    "updatedb-browser-country": "node script/updatedb.mjs ILA_BROWSER_TYPE=country ILA_IP_LOCATION_DB=geo-whois-asn",
+    "updatedb-browser-geocode": "node script/updatedb.mjs ILA_BROWSER_TYPE=geocode ILA_FIELDS=latitude,longitude",
     "browser": "npx http-server browser -p 8321",
     "cjs": "node script/convert-to-cjs.mjs"
   },
@@ -71,6 +72,7 @@
   "dependencies": {
     "axios": "^1.7.7",
     "countries-list": "^3.1.1",
+    "dayjs": "^1.11.13",
     "fast-csv": "^5.0.1",
     "ip-address": "^9.0.5",
     "yauzl": "^3.1.3"
@@ -80,10 +82,9 @@
     "@rollup/plugin-replace": "^5.0.7",
     "@rollup/plugin-strip": "^3.0.4",
     "@rollup/plugin-terser": "^0.4.4",
-    "dayjs": "^1.11.13",
     "doc999tor-fast-geoip": "^1.1.253",
     "eslint": "^8.57.0",
-    "geoip-country": "^5.0.202408302251",
+    "geoip-country": "^4.0.0",
     "geoip-lite": "^1.4.10",
     "globals": "^15.9.0",
     "http-server": "^14.1.1",

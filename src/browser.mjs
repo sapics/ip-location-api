@@ -1,13 +1,9 @@
 
-import { aton4, aton6Start, numberToDir } from './utils.mjs'
-import { IndexLineEnd, downloadBuffer } from './browser_utils.mjs'
-
-//const TOP_URL = 'https://cdn.test.com/data/'
-// const TOP_URL = 'country/'
+import { aton4, aton6Start, numberToDir, numToCountryCode } from './utils.mjs'
+import { downloadBuffer } from './browser_utils.mjs'
 
 const TOP_URL = __CDNURL__ || document.currentScript.src.split('/').slice(0, -1).join('/') + '/'
-
-const MAIN_RECORD_SIZE = 2
+const MAIN_RECORD_SIZE = __DATA_TYPE__ === 'country' ? 2 : 8
 
 const Idx = {}
 const Preload = {
@@ -32,7 +28,7 @@ export default async (ipString) => {
 	
 	const ipIndexes = Idx[version] || (await Preload[version])
 	if(!(ip >= ipIndexes[0])) return null
-	var fline = 0, cline = IndexLineEnd, line
+	var fline = 0, cline = ipIndexes.length-1, line
 	for(;;){
 		line = (fline + cline) >> 1
 		if(ip < ipIndexes[line]){
@@ -71,10 +67,17 @@ export default async (ipString) => {
 			fline = line
 		}
 	}
-	const endIp = new Uint32Array(dataBuffer.slice((recordCount+line)*ipSize , (recordCount+line+1)*ipSize))[0]
+	const endIp = isv4 ? new Uint32Array(   dataBuffer.slice((recordCount+line)*ipSize , (recordCount+line+1)*ipSize))[0]
+										 : new BigUint64Array(dataBuffer.slice((recordCount+line)*ipSize , (recordCount+line+1)*ipSize))[0]
 	if(ip >= startList[line] && ip <= endIp){
-		const ccCode = new Uint16Array(dataBuffer.slice(recordCount*ipSize*2+line*2, recordCount*ipSize*2+line*2+2))[0]
-		return {country: String.fromCharCode(ccCode&255, ccCode>>8)}
+		if(__DATA_TYPE__ === 'country'){
+			const ccCode = new Uint16Array(dataBuffer.slice(recordCount*ipSize*2+line*MAIN_RECORD_SIZE, recordCount*ipSize*2+(line+1)*MAIN_RECORD_SIZE))[0]
+			return {country: String.fromCharCode(ccCode&255, ccCode>>8)}
+		} else {
+			const arr = new Int32Array(dataBuffer.slice(recordCount*ipSize*2+line*MAIN_RECORD_SIZE, recordCount*ipSize*2+(line+1)*MAIN_RECORD_SIZE))
+			const ccCode = numToCountryCode(arr[0] & 1023)
+			return {latitude: ((arr[0]>>10)) / 10000, longitude: (arr[1]) / 10000, country: ccCode}
+		}
 	}
 	return null
 }
