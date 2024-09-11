@@ -1,4 +1,4 @@
-# @iplookup/geocode [![NPM version](https://badge.fury.io/js/@iplookup/geocode)](https://badge.fury.io/js/@iplookup/geocode)
+# @iplookup/geocode [![npm version](https://img.shields.io/npm/v/@iplookup/geocode?color=success&style=flat-square&label=npm)](https://www.npmjs.com/package/@iplookup/geocode)
 
 This is an API created to make [ip-location-api](https://github.com/sapics/ip-location-api) available for browsers.
 The database itself is large at 132MB, so it is splitted into over 4000 pieces for fast downloading in a browser.
