@@ -53,6 +53,16 @@
       "import": "./browser/country-extra/lookup.mjs",
       "require": "./browser/country-extra/lookup.cjs",
       "default": "./browser/country-extra/lookup.cjs"
+    },
+    "./geocode": {
+      "import": "./browser/geocode/lookup.mjs",
+      "require": "./browser/geocode/lookup.cjs",
+      "default": "./browser/geocode/lookup.cjs"
+    },
+    "./geocode-extra": {
+      "import": "./browser/geocode-extra/lookup.mjs",
+      "require": "./browser/geocode-extra/lookup.cjs",
+      "default": "./browser/geocode-extra/lookup.cjs"
     }
   },
   "files": [

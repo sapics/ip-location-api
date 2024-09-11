@@ -51,4 +51,4 @@ Since each user download a partial database, we use the CC0 Licensed database [g
 
 To get extra information about country, we use [Countries](https://github.com/annexare/Countries) which is published under MIT license by [Annexare Studio](https://annexare.com/).
 
-The license for the software itself is published under MIT License by [sapics](https://github.com/sapics).
+The software itself is published under MIT license by [sapics](https://github.com/sapics).
