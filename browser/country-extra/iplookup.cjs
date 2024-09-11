@@ -49,10 +49,10 @@ const numberToDir = (num) => {
 //----------------------------
 // LATITUDE + LONGITUDE:  IndexLoop = 11
 //----------------------------
-// IPv4: 6474072 >> 2 = 1618518 ips
+// IPv4: 6474072 >> 2 = 1,618,518 ips
 // INDEX_FILE_SIZE = (2^IndexLoop)*4 = 8192 bytes
 // COUNTRY_FILE_SIZE = Math.ceil(1618518 / IndexSize) * (4 + 4 + 4 + 4) = 791 * 16 = 12656 bytes
-// IPv6: 7621144 >> 3 = 952643 ips
+// IPv6: 7621144 >> 3 = 952,643 ips
 // INDEX_FILE_SIZE = (2^IndexLoop)*8 = 16384 bytes
 // COUNTRY_FILE_SIZE = Math.ceil(952643 / IndexSize) * (8 + 8 + 4 + 4) = 466 * 24 = 11184 bytes
 
@@ -61,16 +61,8 @@ const downloadBuffer = async (url) => {
 	return fetch(url, {cache: 'no-cache'}).then(res => res.arrayBuffer())
 };
 
-const IndexLoop = 10;
-const IndexSize = Math.pow(2, IndexLoop);
-const IndexLineEnd = IndexSize - 1;
-
-//const TOP_URL = 'https://cdn.test.com/data/'
-// const TOP_URL = 'country/'
-
 const TOP_URL = "https://cdn.jsdelivr.net/npm/@iplookup/country/";
-
-const MAIN_RECORD_SIZE = 2;
+const MAIN_RECORD_SIZE = 2 ;
 
 const Idx = {};
 const Preload = {
@@ -95,7 +87,7 @@ var ip_lookup = async (ipString) => {
 	
 	const ipIndexes = Idx[version] || (await Preload[version]);
 	if(!(ip >= ipIndexes[0])) return null
-	var fline = 0, cline = IndexLineEnd, line;
+	var fline = 0, cline = ipIndexes.length-1, line;
 	for(;;){
 		line = (fline + cline) >> 1;
 		if(ip < ipIndexes[line]){
@@ -134,10 +126,13 @@ var ip_lookup = async (ipString) => {
 			fline = line;
 		}
 	}
-	const endIp = new Uint32Array(dataBuffer.slice((recordCount+line)*ipSize , (recordCount+line+1)*ipSize))[0];
+	const endIp = isv4 ? new Uint32Array(   dataBuffer.slice((recordCount+line)*ipSize , (recordCount+line+1)*ipSize))[0]
+										 : new BigUint64Array(dataBuffer.slice((recordCount+line)*ipSize , (recordCount+line+1)*ipSize))[0];
 	if(ip >= startList[line] && ip <= endIp){
-		const ccCode = new Uint16Array(dataBuffer.slice(recordCount*ipSize*2+line*2, recordCount*ipSize*2+line*2+2))[0];
-		return {country: String.fromCharCode(ccCode&255, ccCode>>8)}
+		{
+			const ccCode = new Uint16Array(dataBuffer.slice(recordCount*ipSize*2+line*MAIN_RECORD_SIZE, recordCount*ipSize*2+(line+1)*MAIN_RECORD_SIZE))[0];
+			return {country: String.fromCharCode(ccCode&255, ccCode>>8)}
+		}
 	}
 	return null
 };

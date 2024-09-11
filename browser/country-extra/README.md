@@ -32,7 +32,7 @@ async function run(){
 
 ```javascript
 import IpLookup from '@iplookup/country-extra'
-await IpLookup("207.97.227.239")
+await IpLookup("2402:b801:ea8b:23c0::")
 ```
 
 #### CJS
