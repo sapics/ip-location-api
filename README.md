@@ -4,7 +4,7 @@ Fast and customizable nodejs api to get geolocation information from ip address.
 `ip-location-api` make a fast lookup by using in-memory database.
 
 This api is created for server-side javascript like Node.js.
-If you need client-side javascript which works in **BROWSER**, please try to use [@iplookup/country](https://github.com/sapics/ip-location-api/tree/main/browser/country).
+If you need client-side javascript which works in **BROWSER**, please try to use [@iplookup/country](https://github.com/sapics/ip-location-api/tree/main/browser/country) or [@iplookup/geocode](https://github.com/sapics/ip-location-api/tree/main/browser/geocode).
 
 
 ## Synopsis
