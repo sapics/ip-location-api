@@ -3,6 +3,7 @@ import fs from 'fs/promises'
 import fsSync from 'fs'
 import path from 'path'
 import { exec } from 'child_process'
+import { fileURLToPath } from "url"
 
 import { countries, continents } from 'countries-list'
 
@@ -13,6 +14,9 @@ const v4db = setting.v4
 const v6db = setting.v6
 const locFieldHash = setting.locFieldHash
 const mainFieldHash = setting.mainFieldHash
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 //---------------------------------------
 // Database lookup
@@ -235,7 +239,7 @@ export const updateDb = (_setting) => {
 	// However, db.js import many external modules, it makes slow down the startup time and uses more memory.
 	// Therefore, we use exec() to run the script in the other process.
 	return new Promise((resolve, reject) => {
-		var cmd = 'node ' + path.resolve(__dirname, '..', 'script', 'updatedb.js')
+		var cmd = 'node ' + path.resolve(__dirname, '..', 'script', 'updatedb.mjs')
 		var arg
 		if(_setting){
 			var oldSetting = Object.assign({}, setting)
