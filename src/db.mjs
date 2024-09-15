@@ -33,7 +33,12 @@ export const update = async () => {
 	if(refreshTmpDir || !fsSync.existsSync(setting.tmpDataDir)){
 		// refresh tmp folder
 		await rimraf(setting.tmpDataDir)
-		await fs.mkdir(setting.tmpDataDir)
+		await fs.mkdir(setting.tmpDataDir, {recursive: true})
+	}
+
+	// When specifying a custom dataDir, it doesn't always exists
+	if (!fsSync.existsSync(setting.dataDir)){
+		await fs.mkdir(setting.dataDir, {recursive: true})
 	}
 
 	console.log('Downloading database')
