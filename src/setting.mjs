@@ -23,11 +23,12 @@ const defaultSetting = {
 	series: 'GeoLite2', // or GeoIP2
 	language: 'en',
 	fakeData: false,
+	autoUpdate: 'default',
 
 	sameDbSetting: false,
 	multiDbDir: false,
 
-	browserType: false
+	browserType: false,
 }
 
 // default setting
@@ -43,6 +44,22 @@ const __dirname = path.dirname(__filename)
 
 const mainFields = ['latitude', 'longitude', 'area', 'postcode']
 const locFields = ['country', 'region1', 'region1_name', 'region2', 'region2_name', 'metro', 'timezone', 'city', 'eu']
+
+const shortNumber = {
+	latitude: 1,
+	longitude: 2,
+	area: 4,
+	postcode: 8,
+	country: 16,
+	region1: 32,
+	region1_name: 64,
+	region2: 128,
+	region2_name: 256,
+	metro: 512,
+	timezone: 1024,
+	city: 2048,
+	eu: 4096
+}
 
 const make_key = (key) => {
 	return 'ILA_' + key.replace(/([A-Z])/g, char => '_' + char).toUpperCase()
@@ -85,6 +102,10 @@ export const setSetting = (_setting = {}) => {
 		else if(NumReg.test(value)) setting[key] = parseInt(value)
 	}
 
+	if(setting.autoUpdate === 'default'){
+		setting.autoUpdate = Math.floor(Math.random()*59.9)  + ' ' + Math.floor(Math.random()*59.9) + ' 0 * * wed,sat'
+	}
+
 	// Directory Setting
 	const windowsDriveReg = /^[a-zA-Z]:\\/
 	if(!setting.dataDir.startsWith('/') && !setting.dataDir.startsWith('\\\\') && !windowsDriveReg.test(setting.dataDir)){
@@ -125,6 +146,8 @@ export const setSetting = (_setting = {}) => {
 	}
 	if(setting.isCountry) setting.noLocFile = true
 	setting.locFile = !setting.noLocFile
+
+	setting.fieldDir = path.join(setting.dataDir, setting.fields.reduce((sum, v) => sum + shortNumber[v], 0).toString(36))
 
 	// Main Data Record Size
 	var mainRecordSize = setting.isCountry ? 2 : getFieldsSize(setting.fields.filter(v => mainFields.includes(v)))

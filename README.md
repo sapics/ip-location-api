@@ -113,11 +113,13 @@ Note that as far as possible, the same field names as in `geoip-lite` are used, 
 
 ### Setup the configuration
 
-You can configure the api by 3 way
-`ILA_FIELDS=latitude,longitude` in CLI parameter or
-`ILA_FIELDS=latitude,longitude` as environment variables or
-`await reload({fields: 'latitude,longitude'})`.
+You can configure the api by 3 way.
+- CLI parameters: `ILA_FIELDS=latitude,longitude`
+- Environment variables: `ILA_FIELDS=latitude,longitude`
+- Javascript: `await reload({fields: 'latitude,longitude'})` .
+
 The name of CLI prameter and environment variables are same.
+
 
 Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is named with "SNAKE" with adding "ILA_" (come from Ip-Location-Api).
 
@@ -132,6 +134,7 @@ Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is 
 | licenseKey | ILA_LICENSE_KEY | redist | By setting [MaxMind](https://www.maxmind.com/) License key, you can download latest version of database from [MaxMind](https://www.maxmind.com/) server. By setting to "redist", you can download the database from [node-geolite2-redist](https://github.com/sapics/node-geolite2-redist) repository which re-distribute the GeoLite2 database. |
 | ipLocationDb | ILA_IP_LOCATION_DB | | When you need only "country" field, you can use [ip-location-db](https://github.com/sapics/ip-location-db) data |
 | downloadType | ILA_DOWNLOAD_TYPE | reuse | By setting to "false", "tmpDataDir" directory is deleted every update. "reuse" dose not delete "tmpDataDir" and re-use "tmpDataDir"'s database if the database file dose not update. |
+| autoUpdate | ILA_AUTO_UPDATE | default | By setting to "false", it dose not update automatically. "default" updates twice weekly. You can set CRON PATTERN FORMAT which is provided by [cron](https://github.com/kelektiv/node-cron) with UTC timezone (For example, ILA_AUTO_UPDATE="0 1 * * *" for daily update). |
 | multiDbDir | ILA_MULTI_DB_DIR | false | If you use multiple "dataDir", please make this value to "true" |
 | series | ILA_SERIES | GeoLite2 | By setting to "GeoIP2", you can use premium database "GeoIP2" |
 | language | ILA_LANGUAGE | en | You can choose "de", "en", "es", "fr", "ja", "pt-BR", "ru", "zh-CN". By changing, the language of "region1_name", "region2_name", "city" fields are changed |
@@ -139,19 +142,30 @@ Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is 
 
 ### Update database
 
-You can update the database by two way.
-First is `await updateDb()` which is the recommended one, because api's in-memory database is auto reloaded after database update.
-Second is `watchDb()` and CLI command `npm run updatedb`.
-The CLI command update the database and `watchDb` reload api's in-memory database by watching the database directory's change ("dataDir").
+```javascript
+import { updateDb } from 'ip-location-api'
+await updateDb(setting)
+```
+
+or
+
+```bash
+npm run updatedb
+```
 
 There are three database update way, "ILA_LICENSE_KEY=redist" or "ILA_LICENSE_KEY=YOUR_GEOLITE2_LICENSE_KEY" or "ILA_IP_LOCATION_DB=YOUR_CHOOSEN_DATABSE".
 
-When you set "ILA_LICENSE_KEY=redist", you can download GeoLite2 database from redistribution repository [node-geolite2-redist](https://github.com/sapics/node-geolite2-redist).
+When you set "ILA_LICENSE_KEY=redist", it downloads GeoLite2 database from the redistribution repository [node-geolite2-redist](https://github.com/sapics/node-geolite2-redist).
 
-YOUR_GEOLITE2_LICENSE_KEY should be replaced by a valid GeoLite2 license key. Please [follow instructions](https://dev.maxmind.com/geoip/geoip2/geolite2/) provided by MaxMind to obtain a license key.
+When you set "ILA_LICENSE_KEY=YOUR_GEOLITE2_LICENSE_KEY", it downloads GeoLite2 dastabase from the MaxMind provided server.
+`YOUR_GEOLITE2_LICENSE_KEY` should be replaced by a valid GeoLite2 license key. Please [follow instructions](https://dev.maxmind.com/geoip/geoip2/geolite2/) provided by MaxMind to obtain a license key.
 
+When you set "ILA_IP_LOCATION_DB=YOUR_CHOOSEN_DATABSE", it downloads from the [ip-location-db](https://github.com/sapics/ip-location-db) (country type only).
 You can "YOUR_CHOOSEN_DATABSE" from [ip-location-db](https://github.com/sapics/ip-location-db) with country type. For example, "geolite2-geo-whois-asn" is wider IP range country database which is equivalent to GeoLite2 database result for GeoLite2 country covered IP range and geo-whois-asn-country for the other IP range. 
 The other example, "geo-whois-asn" is [CC0 licensed database](https://github.com/sapics/ip-location-db/tree/main/geo-asn-country), if you are unable to apply the GeoLite2 License.
+
+
+After v2.0, the database is created automatically at initial startup, and updated automatically by setting `ILA_AUTO_UPDATE` which updates twice weekly with default setting.
 
 
 ## How to use with an example
@@ -219,6 +233,7 @@ This library supports Node.js >= 14 for ESM and CJS.
 There are multiple licenses in this library, one for the software library, and the others for the datadata.
 Please read the LICENSE and EULA files for details.
 
+
 The license for the software itself is published under MIT License by [sapics](https://github.com/sapics).
 
 
@@ -229,8 +244,7 @@ The GeoLite2 database comes with certain restrictions and obligations, most nota
    - to identify specific households or individuals.
 
 You can read [the latest version of GeoLite2 EULA](https://www.maxmind.com/en/geolite2/eula).
-GeoLite2 database is provided under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) by [MaxMind](https://www.maxmind.com/), so, you must create attribusion to [MaxMind](https://www.maxmind.com/) for using GeoLite2 database.
+GeoLite2 database is provided under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) by [MaxMind](https://www.maxmind.com/), so, you need to create attribusion to [MaxMind](https://www.maxmind.com/) for using GeoLite2 database.
 
 
 The database of [Countries](https://github.com/annexare/Countries) is published under MIT license by [Annexare Studio](https://annexare.com/).
-

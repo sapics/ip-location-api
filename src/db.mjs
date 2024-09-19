@@ -35,10 +35,8 @@ export const update = async () => {
 		await rimraf(setting.tmpDataDir)
 		await fs.mkdir(setting.tmpDataDir, {recursive: true})
 	}
-
-	// When specifying a custom dataDir, it doesn't always exists
-	if (!fsSync.existsSync(setting.dataDir)){
-		await fs.mkdir(setting.dataDir, {recursive: true})
+	if (!fsSync.existsSync(setting.fieldDir)){
+		await fs.mkdir(setting.fieldDir, {recursive: true})
 	}
 
 	console.log('Downloading database')
@@ -71,23 +69,19 @@ export const update = async () => {
 	}
 	if(SHA256_RESULT){
 		// save sha256
-		await fs.writeFile(path.join(setting.dataDir, setting.series + '-' + setting.dataType + '-CSV.zip.sha256'), SHA256_RESULT)
+		await fs.writeFile(path.join(setting.fieldDir, setting.series + '-' + setting.dataType + '-CSV.zip.sha256'), SHA256_RESULT)
 	}
 
 	// replace to new database
-	var tmpFiles = fsSync.readdirSync(setting.dataDir).filter(file => file.endsWith('.tmp'))
+	var tmpFiles = fsSync.readdirSync(setting.fieldDir).filter(file => file.endsWith('.tmp'))
 	for(var tmpFile of tmpFiles){
-		await fs.rename(path.join(setting.dataDir, tmpFile), path.join(setting.dataDir, tmpFile.replace('.tmp', '')))
+		await fs.rename(path.join(setting.fieldDir, tmpFile), path.join(setting.fieldDir, tmpFile.replace('.tmp', '')))
 	}
-	if(setting.smallMemory){
-		try{
-			await rimraf(path.join(setting.dataDir, 'v4'), {recursive: true, force: true})
-			await rimraf(path.join(setting.dataDir, 'v6'), {recursive: true, force: true})
-		}catch(e){
-			console.log(e)
-		}
-		await fs.rename(path.join(setting.dataDir, 'v4-tmp'), path.join(setting.dataDir, 'v4'))
-		await fs.rename(path.join(setting.dataDir, 'v6-tmp'), path.join(setting.dataDir, 'v6'))
+	if(setting.smallMemory && !setting.runningUpdate){
+		await fs.cp(path.join(setting.fieldDir, 'v4-tmp'), path.join(setting.fieldDir, 'v4'), {recursive: true, force: true})
+		await fs.cp(path.join(setting.fieldDir, 'v6-tmp'), path.join(setting.fieldDir, 'v6'), {recursive: true, force: true})
+		rimraf(path.join(setting.fieldDir, 'v4-tmp')).catch(console.warn)
+		rimraf(path.join(setting.fieldDir, 'v6-tmp')).catch(console.warn)
 	}
 
 	if(setting.browserType){
@@ -147,9 +141,9 @@ const dbipLocation = async () => {
 					v4Buf3.writeInt32LE(v4[i][2], i * 8)
 					v4Buf3.writeInt32LE(v4[i][3], i * 8 + 4)
 				}
-				fsSync.writeFileSync(path.join(setting.dataDir, '4-1.dat'), v4Buf1)
-				fsSync.writeFileSync(path.join(setting.dataDir, '4-2.dat'), v4Buf2)
-				fsSync.writeFileSync(path.join(setting.dataDir, '4-3.dat'), v4Buf3)
+				fsSync.writeFileSync(path.join(setting.fieldDir, '4-1.dat'), v4Buf1)
+				fsSync.writeFileSync(path.join(setting.fieldDir, '4-2.dat'), v4Buf2)
+				fsSync.writeFileSync(path.join(setting.fieldDir, '4-3.dat'), v4Buf3)
 		
 				var v6Buf1 = Buffer.alloc(v6.length * 8)
 				var v6Buf2 = Buffer.alloc(v6.length * 8)
@@ -160,9 +154,9 @@ const dbipLocation = async () => {
 					v6Buf3.writeInt32LE(v6[i][2], i * 8)
 					v6Buf3.writeInt32LE(v6[i][3], i * 8 + 4)
 				}
-				fsSync.writeFileSync(path.join(setting.dataDir, '6-1.dat'), v6Buf1)
-				fsSync.writeFileSync(path.join(setting.dataDir, '6-2.dat'), v6Buf2)
-				fsSync.writeFileSync(path.join(setting.dataDir, '6-3.dat'), v6Buf3)
+				fsSync.writeFileSync(path.join(setting.fieldDir, '6-1.dat'), v6Buf1)
+				fsSync.writeFileSync(path.join(setting.fieldDir, '6-2.dat'), v6Buf2)
+				fsSync.writeFileSync(path.join(setting.fieldDir, '6-3.dat'), v6Buf3)
 				resolve()
 			})
 			.on('data', arr => {
@@ -194,7 +188,7 @@ const dbipLocation = async () => {
 }
 
 const createBrowserIndex = async (type) => {
-	const exportDir = path.join(setting.dataDir, type)
+	const exportDir = path.join(setting.fieldDir, type)
 	await fs.rm(path.join(exportDir, '4'), {recursive: true, force: true})
 	await fs.mkdir(path.join(exportDir, '4'), {recursive: true})
 	await fs.rm(path.join(exportDir, '6'), {recursive: true, force: true})
@@ -203,13 +197,13 @@ const createBrowserIndex = async (type) => {
 	const IndexSize = type === 'country' ? 1024 : 2048
 
 	// ipv4
-	var startBuf = await fs.readFile(path.join(setting.dataDir, '4-1.dat'))
+	var startBuf = await fs.readFile(path.join(setting.fieldDir, '4-1.dat'))
 	var startList = new Uint32Array(startBuf.buffer)
 	var len = startList.length, indexList = new Uint32Array(IndexSize)
 	var i, j, k
-	var endBuf = await fs.readFile(path.join(setting.dataDir, '4-2.dat'))
+	var endBuf = await fs.readFile(path.join(setting.fieldDir, '4-2.dat'))
 	var endList = new Uint32Array(endBuf.buffer)
-	var dbInfo = await fs.readFile(path.join(setting.dataDir, '4-3.dat'))
+	var dbInfo = await fs.readFile(path.join(setting.fieldDir, '4-3.dat'))
 	var dbList =  type === 'country' ? new Uint16Array(dbInfo.buffer) : new Int32Array(dbInfo.buffer)
 	var recordSize = setting.mainRecordSize + 8
 	for(i = 0; i < IndexSize; ++i){
@@ -233,13 +227,13 @@ const createBrowserIndex = async (type) => {
 	}
 	await fs.writeFile(path.join(exportDir, '4.idx'), Buffer.from(indexList.buffer))
 
-	startBuf = await fs.readFile(path.join(setting.dataDir, '6-1.dat'))
+	startBuf = await fs.readFile(path.join(setting.fieldDir, '6-1.dat'))
 	startList = new BigUint64Array(startBuf.buffer)
 	len = startList.length
 	indexList = new BigUint64Array(IndexSize)
-	endBuf = await fs.readFile(path.join(setting.dataDir, '6-2.dat'))
+	endBuf = await fs.readFile(path.join(setting.fieldDir, '6-2.dat'))
 	endList = new BigUint64Array(endBuf.buffer)
-	dbInfo = await fs.readFile(path.join(setting.dataDir, '6-3.dat'))
+	dbInfo = await fs.readFile(path.join(setting.fieldDir, '6-3.dat'))
 	dbList = type === 'country' ? new Uint16Array(dbInfo.buffer) : new Int32Array(dbInfo.buffer)
 	recordSize = setting.mainRecordSize + 16
 	for(i = 0; i < IndexSize; ++i){
@@ -271,6 +265,7 @@ const createBrowserIndex = async (type) => {
 	await fs.rm(path.join(exPath, '4'), {recursive: true, force: true})
 	await fs.rm(path.join(exPath, '6'), {recursive: true, force: true})
 	await fs.cp(exportDir, exPath, {recursive: true})
+	await fs.rm(exportDir, {recursive: true, force: true})
 }
 
 var SHA256_RESULT
@@ -305,7 +300,7 @@ const downloadZip = async () => {
 	}
 	var sha256 = r[0], data = ''
 	try{
-		data = await fs.readFile(path.join(setting.dataDir, database.edition + '.zip.sha256'), 'utf8')
+		data = await fs.readFile(path.join(setting.fieldDir, database.edition + '.zip.sha256'), 'utf8')
 	}catch(e){
 		data = ''
 	}
@@ -406,7 +401,7 @@ const createData = async (src) => {
 const createSmallMemoryFile = (ws, ipv4, line, buffer2, buffer3) => {
 	const [ _dir, file, offset ] = getSmallMemoryFile(line, ipv4 ? setting.v4 : setting.v6, true)
 	if(offset === 0){
-		const dir = path.join(setting.dataDir, _dir)
+		const dir = path.join(setting.fieldDir, _dir)
 		if(ws) ws.end()
 		if(file === '_0' && !fsSync.existsSync(dir)){
 			fsSync.mkdirSync(dir, {recursive: true})
@@ -429,13 +424,13 @@ const createMainData = async (file, mapDatas) => {
 	var ipv4 = file.endsWith('v4.csv')
 	var ipv = ipv4 ? 4 : 6
 	var rs = fsSync.createReadStream(path.join(setting.tmpDataDir, file))
-	var ws1 = fsSync.createWriteStream(path.join(setting.dataDir, ipv + '-1.dat.tmp'), {highWaterMark: 1024*1024})
+	var ws1 = fsSync.createWriteStream(path.join(setting.fieldDir, ipv + '-1.dat.tmp'), {highWaterMark: 1024*1024})
 	if(!setting.smallMemory){
-		var ws2 =	fsSync.createWriteStream(path.join(setting.dataDir, ipv + '-2.dat.tmp'), {highWaterMark: 1024*1024})
-		var ws3 = fsSync.createWriteStream(path.join(setting.dataDir, ipv + '-3.dat.tmp'), {highWaterMark: 1024*1024})
+		var ws2 =	fsSync.createWriteStream(path.join(setting.fieldDir, ipv + '-2.dat.tmp'), {highWaterMark: 1024*1024})
+		var ws3 = fsSync.createWriteStream(path.join(setting.fieldDir, ipv + '-3.dat.tmp'), {highWaterMark: 1024*1024})
 	} else {
 		var ws = null
-		var dir = path.join(setting.dataDir, 'v' + ipv + '-tmp')
+		var dir = path.join(setting.fieldDir, 'v' + ipv + '-tmp')
 		if(fsSync.existsSync(dir)){
 			await fs.rm(dir, {recursive: true, force: true})
 		}
@@ -718,8 +713,8 @@ const minifyMapData = (mapDatas) => {
 const createMapData = async (mapDatas) => {
 	var locIdList = mapDatas.pop()
 	var mapData0 = mapDatas[0]
-	var ws1 = fsSync.createWriteStream(path.join(setting.dataDir, 'location.dat.tmp'))
-	var ws2 = fsSync.createWriteStream(path.join(setting.dataDir, 'name.dat.tmp'))
+	var ws1 = fsSync.createWriteStream(path.join(setting.fieldDir, 'location.dat.tmp'))
+	var ws2 = fsSync.createWriteStream(path.join(setting.fieldDir, 'name.dat.tmp'))
 	var cityHash = {}, euHash = {}
 	sub1Database = {}, sub2Database = {}, timezoneDatabase = {}
 	sub1Count = 0, sub2Count = 0, timezoneCount = 0
@@ -795,7 +790,7 @@ const createMapData = async (mapDatas) => {
 	if(!setting.mainFieldHash.area) delete hash.area
 	if(!setting.locFieldHash.eu) delete hash.eu
 	if(Object.keys(hash).length > 0){
-		await fs.writeFile(path.join(setting.dataDir, 'sub.json.tmp'), JSON.stringify(hash))
+		await fs.writeFile(path.join(setting.fieldDir, 'sub.json.tmp'), JSON.stringify(hash))
 	}
 	sub1Database = sub2Database = timezoneDatabase = areaDatabase = null
 	mapDatas.length = 0

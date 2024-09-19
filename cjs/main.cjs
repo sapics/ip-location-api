@@ -2,9 +2,11 @@
 const fs = require('fs/promises')
 const fsSync = require('fs')
 const path = require('path')
-const { exec } = require('child_process')
+const { exec, execSync } = require('child_process')
+const { fileURLToPath } = require("url")
 
 const { countries, continents } = require('countries-list')
+const { CronJob } = require('cron')
 
 const { setting, setSetting, getSettingCmd } = require('./setting.cjs')
 const { num37ToStr, getSmallMemoryFile, getZeroFill, aton6Start, aton4 } = require('./utils.cjs')
@@ -90,13 +92,15 @@ const clear = () => {
 }
 
 var Region1NameJson, Region2NameJson, TimezoneJson, LocBuffer, CityNameBuffer, AreaJson, EuJson
+var updateJob
 /**
  * reload in-memory database
  * @param {object} [_setting]
- * @param {boolean} [_sync] - sync mode
+ * @param {boolean} [sync] - sync mode
+ * @param {boolean} [_runningUpdate] - if it's running update [internal use]
  * @returns {Promise<void>}
  */
-const reload = async (_setting, _sync) => {
+const reload = async (_setting, sync, _runningUpdate) => {
 	var curSetting = setting
 	if(_setting){
 		var oldSetting = Object.assign({}, setting)
@@ -104,8 +108,7 @@ const reload = async (_setting, _sync) => {
 		curSetting = Object.assign({}, setting)
 		Object.assign(setting, oldSetting)
 	}
-
-	const dataDir = curSetting.dataDir
+	const dataDir = curSetting.fieldDir
 	const v4 = v4db, v6 = v6db
 	var dataFiles = {
 		v41:           path.join(dataDir, '4-1.dat'),
@@ -121,8 +124,17 @@ const reload = async (_setting, _sync) => {
 
 	var locBuffer, cityNameBuffer, subBuffer
 	var buffer41, buffer42, buffer43, buffer61, buffer62, buffer63
+	var testDir = dataDir
+	if(curSetting.smallMemory){
+		testDir = path.join(testDir, 'v4')
+	}
 
-	if(_sync){
+	if(sync){
+		if(!fsSync.existsSync(testDir)){
+			console.log('Database creating ...')
+			updateDb(curSetting, true, true)
+			console.log('Database created')
+		}
 		buffer41 = fsSync.readFileSync(dataFiles.v41)
 		buffer61 = fsSync.readFileSync(dataFiles.v61)
 		if(!curSetting.smallMemory){
@@ -141,6 +153,11 @@ const reload = async (_setting, _sync) => {
 			}
 		}
 	} else {
+		if(!fsSync.existsSync(testDir)){
+			console.log('Database creating ...')
+			await updateDb(curSetting, true)
+			console.log('Database created')
+		}
 		var prs = [
 			fs.readFile(dataFiles.v41).then(data => buffer41 = data),
 			fs.readFile(dataFiles.v61).then(data => buffer61 = data),
@@ -194,21 +211,45 @@ const reload = async (_setting, _sync) => {
 			if(locFieldHash.eu) EuJson = tmpJson.eu
 		}
 	}
+
+
+	if(setting.smallMemory && _runningUpdate){
+		const rimraf = (dir) => {
+			if(fs.rm){
+				return fs.rm(dir, {recursive: true, force: true, maxRetries: 3})
+			}
+			return fs.rmdir(dir, {recursive: true, maxRetries: 3})
+		}
+		fsSync.cpSync(path.join(setting.fieldDir, 'v4-tmp'), path.join(setting.fieldDir, 'v4'), {recursive: true, force: true})
+		fsSync.cpSync(path.join(setting.fieldDir, 'v6-tmp'), path.join(setting.fieldDir, 'v6'), {recursive: true, force: true})
+		rimraf(path.join(setting.fieldDir, 'v4-tmp')).catch(console.warn)
+		rimraf(path.join(setting.fieldDir, 'v6-tmp')).catch(console.warn)
+	}
+
+	if(!updateJob && setting.autoUpdate){
+		updateJob = new CronJob(setting.autoUpdate, () => {
+			updateDb().finally(() => {})
+		}, null, true, 'UTC')
+	} else if(updateJob && !setting.autoUpdate){
+		updateJob.stop()
+		updateJob = null
+	}
 }
 
 const watchHash = {}
 /**
  * Watch database directory.
  * When database file is updated, it reload the database automatically
+ * This causes error if you use ILA_SMALL_MEMORY=true
  * @param {string} [name] - name of watch. If you want to watch multiple directories, you can set different name for each directory
  */
 const watchDb = (name = 'ILA') => {
 	var watchId = null
-	watchHash[name] = fsSync.watch(setting.dataDir, (eventType, filename) => {
+	watchHash[name] = fsSync.watch(setting.fieldDir, (eventType, filename) => {
 		if(!filename.endsWith('.dat')) return;
-		if(fsSync.existsSync(path.join(setting.dataDir, filename))) {
+		if(fsSync.existsSync(path.join(setting.fieldDir, filename))) {
 			if(watchId) clearTimeout(watchId)
-			watchId = setTimeout(reload, 60 * 1000)
+			watchId = setTimeout(reload, 30 * 1000)
 		}
 	})
 }
@@ -227,32 +268,60 @@ const stopWatchDb = (name = 'ILA') => {
 /**
  * Update database and auto reload database
  * @param {object} [_setting] - if you need to update the database with different setting
+ * @param {boolean} [noReload] - if you don't want to reload the database after update
+ * @param {boolean} [sync] - if you want to update the database in sync mode
  * @returns {Promise<boolean>} - true if database is updated, false if no need to update
  */
-const updateDb = (_setting) => {
+const updateDb = (_setting, noReload, sync) => {
 
 
 
+	var cmd = 'node ' + path.resolve(__dirname, '..', 'script', 'updatedb.mjs')
+	var arg, runningUpdate = false
+	if(_setting){
+		var oldSetting = Object.assign({}, setting)
+		setSetting(_setting)
+		arg = getSettingCmd()
+		Object.assign(setting, oldSetting)
+	} else {
+		arg = getSettingCmd()
+	}
+	if(!_setting){
+		arg += ' ' + 'ILA_SAME_DB_SETTING=true'
+	}
+	if(_setting && _setting.smallmemory || !_setting && setting.smallMemory){
+		runningUpdate = true
+		arg += ' ILA_RUNNING_UPDATE=true'
+	}
+
+	if(arg){
+		cmd += ' ' + arg
+	}
+	if(sync){
+		try{
+			var stdout = execSync(cmd)
+			if(stdout.includes('NO NEED TO UPDATE')){
+				return true
+			}
+			if(stdout.includes('SUCCESS TO UPDATE')){
+				if(!noReload){
+					reload(_setting, sync)
+				}
+				return true
+			}
+			return false
+		}catch(e){
+			console.warn(e)
+			return false
+		}
+	}
 	return new Promise((resolve, reject) => {
-		var cmd = 'node ' + path.resolve(__dirname, '..', 'script', 'updatedb.js')
-		var arg
-		if(_setting){
-			var oldSetting = Object.assign({}, setting)
-			setSetting(_setting)
-			arg = getSettingCmd()
-			Object.assign(setting, oldSetting)
-		} else {
-			arg = getSettingCmd()
-		}
-		if(!_setting){
-			arg += ' ' + 'ILA_SAME_DB_SETTING=true'
-		}
-		exec(cmd + ' ' + arg, (err, stdout, stderr) => {
+		exec(cmd, (err, stdout, stderr) => {
 			if(err) {
 				console.warn(err)
 			}
 			if(stderr) {
-				console.error(stderr)
+				console.warn(stderr)
 			}
 			if(stdout) {
 				console.log(stdout)
@@ -264,9 +333,13 @@ const updateDb = (_setting) => {
 			} else if(stdout.includes('NO NEED TO UPDATE')){
 				resolve(false)
 			} else if(stdout.includes('SUCCESS TO UPDATE')){
-				setTimeout(() => reload(_setting).then(() => {
+				if(noReload){
 					resolve(true)
-				}).catch(reject), 1000)
+				} else {
+					reload(_setting, false, runningUpdate).then(() => {
+						resolve(true)
+					}).catch(reject)
+				}
 			} else {
 				console.log('UNKNOWN ERROR')
 				reject(new Error('UNKNOWN ERROR'))
@@ -299,7 +372,7 @@ const lineToFile = (line, db) => {
 */
 const lineToFile = async (line, db) => {
 	const [ dir, file, offset ] = getSmallMemoryFile(line, db)
-	const fd = await fs.open(path.join(setting.dataDir, dir, file), 'r')
+	const fd = await fs.open(path.join(setting.fieldDir, dir, file), 'r')
 	const buffer = Buffer.alloc(db.recordSize)
 	await fd.read(buffer, 0, db.recordSize, offset)
 	fd.close().catch(console.warn)
