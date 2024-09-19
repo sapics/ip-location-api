@@ -45,7 +45,7 @@ console.log(location)
 }
 ```
 
-### Benchmark
+## Benchmark
 
 I make a benchmark for making comparison with intel 12700 (2.1GHz), SSD, nodejs v20.
 You can change the memory usage or lookup time, by customizing location information.
@@ -81,7 +81,7 @@ Asynchronouns one load smaller data in-memory at startup time, and the other dat
 If you have a enough memory, I recommend to use synchronouns one because lookup is over 300 times faster than asynchronouns one.
 
 
-### Field description
+## Field description
 
 Note that as far as possible, the same field names as in `geoip-lite` are used, but some different field names are used.
 
@@ -111,7 +111,7 @@ Note that as far as possible, the same field names as in `geoip-lite` are used, 
 | languages | ❌️ | Countries | list of commonly used languages |
 
 
-### Setup the configuration
+## Setup the configuration
 
 You can configure the api by 3 way.
 - CLI parameters: `ILA_FIELDS=latitude,longitude`
@@ -140,22 +140,26 @@ Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is 
 | language | ILA_LANGUAGE | en | You can choose "de", "en", "es", "fr", "ja", "pt-BR", "ru", "zh-CN". By changing, the language of "region1_name", "region2_name", "city" fields are changed |
 
 
-### Update database
+## Update database
+
+```bash
+npm run updatedb
+```
+
+or
 
 ```javascript
 import { updateDb } from 'ip-location-api'
 await updateDb(setting)
 ```
 
-or
 
-```bash
-npm run updatedb
-```
+There are three database update way.
+- ILA_LICENSE_KEY=redist
+- ILA_LICENSE_KEY=YOUR_GEOLITE2_LICENSE_KEY
+- ILA_IP_LOCATION_DB=YOUR_CHOOSEN_DATABSE
 
-There are three database update way, "ILA_LICENSE_KEY=redist" or "ILA_LICENSE_KEY=YOUR_GEOLITE2_LICENSE_KEY" or "ILA_IP_LOCATION_DB=YOUR_CHOOSEN_DATABSE".
-
-When you set "ILA_LICENSE_KEY=redist", it downloads GeoLite2 database from the redistribution repository [node-geolite2-redist](https://github.com/sapics/node-geolite2-redist).
+When you set "ILA_LICENSE_KEY=redist" which is the dafault setting, it downloads GeoLite2 database from the redistribution repository [node-geolite2-redist](https://github.com/sapics/node-geolite2-redist).
 
 When you set "ILA_LICENSE_KEY=YOUR_GEOLITE2_LICENSE_KEY", it downloads GeoLite2 dastabase from the MaxMind provided server.
 `YOUR_GEOLITE2_LICENSE_KEY` should be replaced by a valid GeoLite2 license key. Please [follow instructions](https://dev.maxmind.com/geoip/geoip2/geolite2/) provided by MaxMind to obtain a license key.
@@ -172,6 +176,7 @@ After v2.0, the database is created automatically at initial startup, and update
 
 When you need only geographic coordinates, please set "ILA_FIELDS=latitude,longitude".
 You need to create a database for each configuration.
+After v2.0.0, the database is created at initial running (which takes some seconds), and auto update with `ILA_AUTO_UPDATE` which update twice weekly with default setting.
 The database is created by following CLI
 
 ```bash
@@ -213,7 +218,7 @@ await reload({fields:['latitude', 'longitude']})
 ```
 
 
-If you need all the data in above field table, setting "fields=all" and "addCountryInfo=true" is the one.
+If you need all the data in above field table, setting "ILA_FIELDS=all" and "ILA_ADD_COUNTRY_INFO=true" is the one.
 
 
 | benchmark | in-memory db | startup | lookup ipv4 | lookup ipv6 |
