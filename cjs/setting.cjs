@@ -27,6 +27,7 @@ const defaultSetting = {
 	multiDbDir: false,
 
 	browserType: false,
+	silent: false,
 }
 
 const setting = {
@@ -58,6 +59,16 @@ const shortNumber = {
 
 const make_key = (key) => {
 	return 'ILA_' + key.replace(/([A-Z])/g, char => '_' + char).toUpperCase()
+}
+
+const consoleLog = (...args) => {
+	if(setting.silent) return
+	console.log(...args)
+}
+
+const consoleWarn = (...args) => {
+	if(setting.silent) return
+	console.warn(...args)
 }
 
 const getSettingCmd = () => {
@@ -159,4 +170,4 @@ const setSetting = (_setting = {}) => {
 
 setSetting(Object.assign({}, defaultSetting, inputSetting))
 
-module.exports={setting:setting,getSettingCmd:getSettingCmd,setSetting:setSetting}
+module.exports={setting:setting,consoleLog:consoleLog,consoleWarn:consoleWarn,getSettingCmd:getSettingCmd,setSetting:setSetting}
