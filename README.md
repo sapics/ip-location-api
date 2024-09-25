@@ -138,6 +138,7 @@ Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is 
 | multiDbDir | ILA_MULTI_DB_DIR | false | If you use multiple "dataDir", please make this value to "true" |
 | series | ILA_SERIES | GeoLite2 | By setting to "GeoIP2", you can use premium database "GeoIP2" |
 | language | ILA_LANGUAGE | en | You can choose "de", "en", "es", "fr", "ja", "pt-BR", "ru", "zh-CN". By changing, the language of "region1_name", "region2_name", "city" fields are changed |
+| silent | ILA_SILENT | false | true: deactivate unnecessary console.log |
 
 
 ## Update database
