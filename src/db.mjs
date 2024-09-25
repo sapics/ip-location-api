@@ -10,7 +10,7 @@ import { parse } from '@fast-csv/parse'
 import { Address4, Address6 } from 'ip-address'
 import dayjs from 'dayjs'
 
-import { setting } from './setting.mjs'
+import { setting, consoleLog, consoleWarn } from './setting.mjs'
 import { getPostcodeDatabase, strToNum37, aton4, aton6, getSmallMemoryFile, numberToDir, countryCodeToNum } from './utils.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -39,7 +39,7 @@ export const update = async () => {
 		await fs.mkdir(setting.fieldDir, {recursive: true})
 	}
 
-	console.log('Downloading database')
+	consoleLog('Downloading database')
 	if(setting.browserType === 'geocode'){
 		await dbipLocation()
 		return createBrowserIndex(setting.browserType)
@@ -54,14 +54,14 @@ export const update = async () => {
 	if(!srcList){
 		return console.log('ERROR TO UPDATE')
 	}
-	console.log(srcList);
+	consoleLog(srcList);
 	if(srcList === 'NO NEED TO UPDATE') {
 		return;
 	}
 
-	console.log('Creating database for ip-location-api')
+	consoleLog('Creating database for ip-location-api')
 	await createData(srcList)
-	console.log('Database update completed!!')
+	consoleLog('Database update completed!!')
 
 	// remove tmp folder
 	if(refreshTmpDir){
@@ -80,8 +80,8 @@ export const update = async () => {
 	if(setting.smallMemory && !setting.runningUpdate){
 		await fs.cp(path.join(setting.fieldDir, 'v4-tmp'), path.join(setting.fieldDir, 'v4'), {recursive: true, force: true})
 		await fs.cp(path.join(setting.fieldDir, 'v6-tmp'), path.join(setting.fieldDir, 'v6'), {recursive: true, force: true})
-		rimraf(path.join(setting.fieldDir, 'v4-tmp')).catch(console.warn)
-		rimraf(path.join(setting.fieldDir, 'v6-tmp')).catch(console.warn)
+		rimraf(path.join(setting.fieldDir, 'v4-tmp')).catch(consoleWarn)
+		rimraf(path.join(setting.fieldDir, 'v6-tmp')).catch(consoleWarn)
 	}
 
 	if(setting.browserType){
@@ -286,7 +286,7 @@ const downloadZip = async () => {
 		database.src.push(setting.series + '-' + name + '-Locations-' + setting.language + '.csv')
 	}
 	if(!setting.licenseKey) {
-		return console.warn('Please set your license key')
+		return consoleWarn('Please set your license key')
 	}
 	var url = DownloadServer + '?edition_id=' + database.edition + '&suffix=' + database.suffix + "&license_key=" + setting.licenseKey
 	if(setting.licenseKey === 'redist'){
@@ -296,7 +296,7 @@ const downloadZip = async () => {
 	var text = await axios.get(url)
 	var reg = /\w{50,}/, r = reg.exec(text.data)
 	if(!r) {
-		return console.warn('Cannot download sha256')
+		return consoleWarn('Cannot download sha256')
 	}
 	var sha256 = r[0], data = ''
 	try{
@@ -333,7 +333,7 @@ const downloadZip = async () => {
 	}).then(res => {
 		const dest = fsSync.createWriteStream(zipPath)
 		return new Promise((resolve, reject) => {
-			console.log('Decompressing', database.edition + '.zip')
+			consoleLog('Decompressing', database.edition + '.zip')
 			res.data.pipe(dest)
 			res.data.on('end', () => {
 				yauzl.open(zipPath, {lazyEntries: true}, (err, zipfile) => {
@@ -342,7 +342,7 @@ const downloadZip = async () => {
 					zipfile.on('entry', entry => {
 						for(var src of database.src){
 							if(!entry.fileName.endsWith(src)) continue;
-							console.log('Extracting', entry.fileName)
+							consoleLog('Extracting', entry.fileName)
 							return (function(src){
 								zipfile.openReadStream(entry, (err, readStream) => {
 									if(err) return reject(err)
@@ -551,7 +551,7 @@ const createMainData = async (file, mapDatas) => {
 //							if(!countryCode || countryCode.length !== 2) return
 						}
 						if(locId && !mapData0[locId]) {
-							return console.warn('Invalid location id', locId)
+							return consoleWarn('Invalid location id', locId)
 						}
 						if(locId){
 							if(!mapData0[locId].counter){

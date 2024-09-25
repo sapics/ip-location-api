@@ -29,6 +29,7 @@ const defaultSetting = {
 	multiDbDir: false,
 
 	browserType: false,
+	silent: false,
 }
 
 // default setting
@@ -63,6 +64,16 @@ const shortNumber = {
 
 const make_key = (key) => {
 	return 'ILA_' + key.replace(/([A-Z])/g, char => '_' + char).toUpperCase()
+}
+
+export const consoleLog = (...args) => {
+	if(setting.silent) return
+	console.log(...args)
+}
+
+export const consoleWarn = (...args) => {
+	if(setting.silent) return
+	console.warn(...args)
 }
 
 export const getSettingCmd = () => {

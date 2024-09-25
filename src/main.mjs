@@ -8,7 +8,7 @@ import { fileURLToPath } from "url"
 import { countries, continents } from 'countries-list'
 import { CronJob } from 'cron'
 
-import { setting, setSetting, getSettingCmd } from './setting.mjs'
+import { setting, setSetting, getSettingCmd, consoleLog, consoleWarn } from './setting.mjs'
 import { num37ToStr, getSmallMemoryFile, getZeroFill, aton6Start, aton4 } from './utils.mjs'
 
 const v4db = setting.v4
@@ -135,9 +135,9 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 
 	if(sync){
 		if(!fsSync.existsSync(testDir)){
-			console.log('Database creating ...')
+			consoleLog('Database creating ...')
 			updateDb(curSetting, true, true)
-			console.log('Database created')
+			consoleLog('Database created')
 		}
 		buffer41 = fsSync.readFileSync(dataFiles.v41)
 		buffer61 = fsSync.readFileSync(dataFiles.v61)
@@ -158,9 +158,9 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 		}
 	} else {
 		if(!fsSync.existsSync(testDir)){
-			console.log('Database creating ...')
+			consoleLog('Database creating ...')
 			await updateDb(curSetting, true)
-			console.log('Database created')
+			consoleLog('Database created')
 		}
 		var prs = [
 			fs.readFile(dataFiles.v41).then(data => buffer41 = data),
@@ -227,8 +227,8 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 		}
 		fsSync.cpSync(path.join(setting.fieldDir, 'v4-tmp'), path.join(setting.fieldDir, 'v4'), {recursive: true, force: true})
 		fsSync.cpSync(path.join(setting.fieldDir, 'v6-tmp'), path.join(setting.fieldDir, 'v6'), {recursive: true, force: true})
-		rimraf(path.join(setting.fieldDir, 'v4-tmp')).catch(console.warn)
-		rimraf(path.join(setting.fieldDir, 'v6-tmp')).catch(console.warn)
+		rimraf(path.join(setting.fieldDir, 'v4-tmp')).catch(consoleWarn)
+		rimraf(path.join(setting.fieldDir, 'v6-tmp')).catch(consoleWarn)
 	}
 
 	if(!updateJob && setting.autoUpdate){
@@ -316,20 +316,20 @@ export const updateDb = (_setting, noReload, sync) => {
 			}
 			return false
 		}catch(e){
-			console.warn(e)
+			consoleWarn(e)
 			return false
 		}
 	}
 	return new Promise((resolve, reject) => {
 		exec(cmd, (err, stdout, stderr) => {
 			if(err) {
-				console.warn(err)
+				consoleWarn(err)
 			}
 			if(stderr) {
-				console.warn(stderr)
+				consoleWarn(stderr)
 			}
 			if(stdout) {
-				console.log(stdout)
+				consoleLog(stdout)
 			}
 			if(err) {
 				reject(err)
@@ -346,7 +346,7 @@ export const updateDb = (_setting, noReload, sync) => {
 					}).catch(reject)
 				}
 			} else {
-				console.log('UNKNOWN ERROR')
+				consoleLog('UNKNOWN ERROR')
 				reject(new Error('UNKNOWN ERROR'))
 			}
 		})
@@ -382,7 +382,7 @@ const lineToFile = async (line, db) => {
 	const fd = await fs.open(path.join(setting.fieldDir, dir, file), 'r')
 	const buffer = Buffer.alloc(db.recordSize)
 	await fd.read(buffer, 0, db.recordSize, offset)
-	fd.close().catch(console.warn)
+	fd.close().catch(consoleWarn)
 	return buffer
 }
 
