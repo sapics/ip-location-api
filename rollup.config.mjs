@@ -3,6 +3,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import ignore from 'rollup-plugin-ignore';
 import replace from '@rollup/plugin-replace';
+import strip from '@rollup/plugin-strip';
 
 const original = {
   input: 'src/browser.mjs',
@@ -21,6 +22,9 @@ const original = {
       browser: true,
     }),
     ignore(["fs", "path"]),
+    strip({
+      functions: ['console.*'],
+    })
   ]
 }
 const settings = [original]

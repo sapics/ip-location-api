@@ -1,16 +1,62 @@
 
 import { aton4, aton6Start, numberToDir, numToCountryCode } from './utils.mjs'
-import { downloadBuffer } from './browser_utils.mjs'
 
 const TOP_URL = __CDNURL__ || document.currentScript.src.split('/').slice(0, -1).join('/') + '/'
 const MAIN_RECORD_SIZE = __DATA_TYPE__ === 'country' ? 2 : 8
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-const Idx = {}
+const downloadArrayBuffer = async(url, retry = 3) => {
+	return fetch(url, {cache: 'no-cache'}).then(async (res) => {
+		if(!res.ok) {
+			if(res.status === 404) return null
+			if(retry) {
+				await sleep(100 * (4-retry) * (4-retry))
+				return downloadArrayBuffer(url, retry - 1)
+			}
+			return null
+		}
+		return res.arrayBuffer()
+	})
+}
+
+const downloadVersionArrayBuffer = async(url, retry = 3) => {
+	return fetch(url, {cache: 'no-cache'}).then(async (res) => {
+		if(!res.ok) {
+			if(res.status === 404) return null
+			if(retry) {
+				await sleep(100 * (4-retry) * (4-retry))
+				return downloadVersionArrayBuffer(url, retry - 1)
+			}
+			return null
+		}
+		return [res.headers.get('x-jsd-version'), await res.arrayBuffer()]
+	})
+}
+
+const downloadIdx = __CDNURL__ ? downloadVersionArrayBuffer : downloadArrayBuffer
+
+const Idx = {}, Url = {4: TOP_URL, 6: TOP_URL}
 const Preload = {
-	4: downloadBuffer(TOP_URL + '4.idx').then(buf => {
+	4: downloadIdx(TOP_URL + '4.idx').then(buf => {
+		if(!buf){
+//			console.log('ipv6 file cannot download')
+			return
+		}
+		if(__CDNURL__ && buf[0]) {
+			Url[4] = __CDN_URL__.replace(/\/$/, '@'+buf[0]+'/')
+			return Idx[4] = new Uint32Array(buf[1])
+		}
 		return Idx[4] = new Uint32Array(buf)
 	}),
-	6: downloadBuffer(TOP_URL + '6.idx').then(buf => {
+	6: downloadIdx(TOP_URL + '4.idx').then(buf => {
+		if(!buf){
+//			console.log('ipv6 file cannot download')
+			return
+		}
+		if(__CDNURL__ && buf[0]) {
+			Url[6] = __CDN_URL__.replace(/\/$/, '@'+buf[0]+'/')
+			return Idx[6] = new BigUint64Array(buf.slice(1))
+		}
 		return Idx[6] = new BigUint64Array(buf)
 	})
 }
@@ -27,6 +73,10 @@ export default async (ipString) => {
 	}
 	
 	const ipIndexes = Idx[version] || (await Preload[version])
+	if(!ipIndexes) {
+//		console.log('Cannot download idx file')
+		return null
+	}
 	if(!(ip >= ipIndexes[0])) return null
 	var fline = 0, cline = ipIndexes.length-1, line
 	for(;;){
@@ -46,7 +96,11 @@ export default async (ipString) => {
 	}
 
 	const fileName = numberToDir(line)
-	const dataBuffer = await downloadBuffer(TOP_URL + version + '/' + fileName)
+	const dataBuffer = await downloadArrayBuffer(Url[version] + version + '/' + fileName)
+	if(!dataBuffer) {
+//		console.log('Cannot download data file')
+		return null
+	}
 	const ipSize = (version - 2) * 2
 	const recordSize = MAIN_RECORD_SIZE + ipSize * 2
 	const recordCount = dataBuffer.byteLength / recordSize

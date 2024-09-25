@@ -39,41 +39,62 @@ const numberToDir = (num) => {
 	return getUnderberFill(num.toString(36), 2)
 };
 
-//----------------------------
-// COUNTRY: IndexLoop = 10
-//----------------------------
-// IPv4: 1172844 >> 2 = 293211 ips
-// INDEX_FILE_SIZE = (2^IndexLoop)*4 = 4096 bytes
-// COUNTRY_FILE_SIZE = Math.ceil(293211 / IndexSize) * (4 + 4 + 2) = 2870 bytes
-// IPv6: 1914064 >> 3 = 146605 ips
-// INDEX_FILE_SIZE = (2^IndexLoop)*8 = 8192 bytes
-// COUNTRY_FILE_SIZE = Math.ceil(146605 / IndexSize) * (8 + 8 + 2) = 144 * 18 = 2592 bytes
-
-
-//----------------------------
-// LATITUDE + LONGITUDE:  IndexLoop = 11
-//----------------------------
-// IPv4: 6474072 >> 2 = 1,618,518 ips
-// INDEX_FILE_SIZE = (2^IndexLoop)*4 = 8192 bytes
-// COUNTRY_FILE_SIZE = Math.ceil(1618518 / IndexSize) * (4 + 4 + 4 + 4) = 791 * 16 = 12656 bytes
-// IPv6: 7621144 >> 3 = 952,643 ips
-// INDEX_FILE_SIZE = (2^IndexLoop)*8 = 16384 bytes
-// COUNTRY_FILE_SIZE = Math.ceil(952643 / IndexSize) * (8 + 8 + 4 + 4) = 466 * 24 = 11184 bytes
-
-
-const downloadBuffer = async (url) => {
-	return fetch(url, {cache: 'no-cache'}).then(res => res.arrayBuffer())
-};
-
 const TOP_URL = "https://cdn.jsdelivr.net/npm/@iplookup/country/";
 const MAIN_RECORD_SIZE = 8;
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const Idx = {};
+const downloadArrayBuffer = async(url, retry = 3) => {
+	return fetch(url, {cache: 'no-cache'}).then(async (res) => {
+		if(!res.ok) {
+			if(res.status === 404) return null
+			if(retry) {
+				await sleep(100 * (4-retry) * (4-retry));
+				return downloadArrayBuffer(url, retry - 1)
+			}
+			return null
+		}
+		return res.arrayBuffer()
+	})
+};
+
+const downloadVersionArrayBuffer = async(url, retry = 3) => {
+	return fetch(url, {cache: 'no-cache'}).then(async (res) => {
+		if(!res.ok) {
+			if(res.status === 404) return null
+			if(retry) {
+				await sleep(100 * (4-retry) * (4-retry));
+				return downloadVersionArrayBuffer(url, retry - 1)
+			}
+			return null
+		}
+		return [res.headers.get('x-jsd-version'), await res.arrayBuffer()]
+	})
+};
+
+const downloadIdx = downloadVersionArrayBuffer ;
+
+const Idx = {}, Url = {4: TOP_URL, 6: TOP_URL};
 const Preload = {
-	4: downloadBuffer(TOP_URL + '4.idx').then(buf => {
+	4: downloadIdx(TOP_URL + '4.idx').then(buf => {
+		if(!buf){
+//			console.log('ipv6 file cannot download')
+			return
+		}
+		if(buf[0]) {
+			Url[4] = __CDN_URL__.replace(/\/$/, '@'+buf[0]+'/');
+			return Idx[4] = new Uint32Array(buf[1])
+		}
 		return Idx[4] = new Uint32Array(buf)
 	}),
-	6: downloadBuffer(TOP_URL + '6.idx').then(buf => {
+	6: downloadIdx(TOP_URL + '4.idx').then(buf => {
+		if(!buf){
+//			console.log('ipv6 file cannot download')
+			return
+		}
+		if(buf[0]) {
+			Url[6] = __CDN_URL__.replace(/\/$/, '@'+buf[0]+'/');
+			return Idx[6] = new BigUint64Array(buf.slice(1))
+		}
 		return Idx[6] = new BigUint64Array(buf)
 	})
 };
@@ -90,6 +111,10 @@ var ip_lookup = async (ipString) => {
 	}
 	
 	const ipIndexes = Idx[version] || (await Preload[version]);
+	if(!ipIndexes) {
+//		console.log('Cannot download idx file')
+		return null
+	}
 	if(!(ip >= ipIndexes[0])) return null
 	var fline = 0, cline = ipIndexes.length-1, line;
 	for(;;){
@@ -109,7 +134,11 @@ var ip_lookup = async (ipString) => {
 	}
 
 	const fileName = numberToDir(line);
-	const dataBuffer = await downloadBuffer(TOP_URL + version + '/' + fileName);
+	const dataBuffer = await downloadArrayBuffer(Url[version] + version + '/' + fileName);
+	if(!dataBuffer) {
+//		console.log('Cannot download data file')
+		return null
+	}
 	const ipSize = (version - 2) * 2;
 	const recordSize = MAIN_RECORD_SIZE + ipSize * 2;
 	const recordCount = dataBuffer.byteLength / recordSize;
