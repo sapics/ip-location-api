@@ -1,0 +1,37 @@
+{
+  "name": "@iplookup/util",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Utility functions for ip-location-api",
+  "author": "sapics",
+  "license": "CC BY 4.0 and MIT",
+  "homepage": "https://github.com/sapics/ip-location-api",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sapics/ip-location-api.git",
+    "directory": "packages/util"
+  },
+  "keywords": [
+    "util",
+    "ip-location-api"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./browser": "./dist/browser.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "defu": "^6.1.4"
+  }
+}

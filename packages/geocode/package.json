@@ -1,0 +1,49 @@
+{
+  "name": "@iplookup/geocode",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Browser api to lookup geocode from IP address",
+  "author": "sapics",
+  "license": "CC BY 4.0 and MIT",
+  "homepage": "https://github.com/sapics/ip-location-api",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sapics/ip-location-api.git",
+    "directory": "packages/geocode"
+  },
+  "keywords": [
+    "location",
+    "iplookup",
+    "lookup",
+    "geo",
+    "geocode",
+    "geoip",
+    "ip",
+    "ipv4",
+    "ipv6",
+    "ip-location-db",
+    "country"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@iplookup/util": "workspace:*"
+  }
+}
