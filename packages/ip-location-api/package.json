@@ -1,0 +1,44 @@
+{
+  "name": "ip-location-api",
+  "type": "module",
+  "version": "3.0.0",
+  "description": "Fast location lookup from IP address",
+  "author": "sapics",
+  "license": "Multiple licenses",
+  "homepage": "https://github.com/sapics/ip-location-api",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sapics/ip-location-api.git",
+    "directory": "packages/ip-location-api"
+  },
+  "keywords": [
+    "location",
+    "lookup",
+    "geo",
+    "geoip",
+    "geolite",
+    "maxmind",
+    "ip",
+    "ipv4",
+    "ipv6",
+    "ip-location-db",
+    "country",
+    "city"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch"
+  }
+}

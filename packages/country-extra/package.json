@@ -1,0 +1,48 @@
+{
+  "name": "@iplookup/country-extra",
+  "type": "module",
+  "version": "1.0.20240927",
+  "description": "Browser api to lookup country from IP address",
+  "author": "sapics",
+  "license": "CC BY 4.0 and MIT",
+  "homepage": "https://github.com/sapics/ip-location-api",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sapics/ip-location-api.git",
+    "directory": "packages/country-extra"
+  },
+  "keywords": [
+    "location",
+    "iplookup",
+    "lookup",
+    "geo",
+    "geoip",
+    "ip",
+    "ipv4",
+    "ipv6",
+    "ip-location-db",
+    "country"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@iplookup/util": "workspace:*"
+  }
+}

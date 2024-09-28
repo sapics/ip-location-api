@@ -1,0 +1,11 @@
+dist
+indexes
+.DS_Store
+coverage
+*.lcov
+node_modules/
+*.tsbuildinfo
+.npm
+.eslintcache
+*.tgz
+.env
