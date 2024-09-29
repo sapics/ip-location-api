@@ -4,6 +4,11 @@ import { numberToCountryCode } from './functions/numberToCountryCode.js'
 import { numberToDir } from './functions/numberToDir.js'
 import { parseIp } from './functions/parseIp.js'
 
+/**
+ * Sets up an IP lookup function based on the specified data type.
+ * @template T - The type of data to return ('country' or 'geocode')
+ * @returns A function that takes an IP address and returns location data
+ */
 export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => Promise<T extends 'country' ? { country: string } | null : { latitude: number, longitude: number, country: string } | null> {
   const CDN_URL = __CDN_URL__
   const MAIN_RECORD_SIZE = __DATA_TYPE__ === 'country' ? 2 : 8
@@ -16,12 +21,20 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
     6: CDN_URL,
   }
 
+  /**
+   * Loads the index for the specified IP version.
+   * @param ipVersion - The IP version (4 or 6)
+   * @returns A promise that resolves to the loaded index
+   */
   async function loadIndex(ipVersion: 4 | 6) {
-    //* Determine the base URL for downloading the index
     const baseUrl = getBaseUrl()
     return downloadIndex(baseUrl, ipVersion)
   }
 
+  /**
+   * Determines the base URL for downloading the index.
+   * @returns The base URL as a string
+   */
   function getBaseUrl(): string {
     //* If we are not in the DOM we just use the CDN_URL to download the index
     if (typeof document === 'undefined' || !document.currentScript) {
@@ -37,6 +50,12 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
     return document.currentScript.src.split('/').slice(0, -1).join('/')
   }
 
+  /**
+   * Downloads the index file for the specified IP version.
+   * @param baseUrl - The base URL for downloading
+   * @param version - The IP version (4 or 6)
+   * @returns A promise that resolves to the downloaded index
+   */
   async function downloadIndex(baseUrl: string, version: 4 | 6) {
     const result = await fetchArrayBuffer(
       new URL(`indexes/${version}.idx`, baseUrl),
@@ -50,6 +69,11 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
     return (INDEXES[version] = new BigUint64Array(buffer))
   }
 
+  /**
+   * Performs an IP lookup and returns location data.
+   * @param ipInput - The IP address to look up
+   * @returns A promise that resolves to location data or null if not found
+   */
   return async function IpLookup(ipInput: string) {
     const { version, ip } = parseIp(ipInput)
 
@@ -100,6 +124,15 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
     return null
   } as (ipInput: string) => Promise<T extends 'country' ? { country: string } | null : { latitude: number, longitude: number, country: string } | null>
 
+  /**
+   * Retrieves the end IP for a given record.
+   * @param dataBuffer - The buffer containing IP data
+   * @param ipVersion - The IP version (4 or 6)
+   * @param recordCount - The total number of records
+   * @param recordIndex - The index of the current record
+   * @param ipSize - The size of an IP address in bytes
+   * @returns The end IP as a number
+   */
   function getEndIp(dataBuffer: ArrayBuffer, ipVersion: 4 | 6, recordCount: number, recordIndex: number, ipSize: number) {
     const endIpBuffer = dataBuffer.slice(
       (recordCount + recordIndex) * ipSize,
@@ -110,6 +143,15 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
       : new BigUint64Array(endIpBuffer)[0]!
   }
 
+  /**
+   * Parses a record and returns location data.
+   * @param dataBuffer - The buffer containing record data
+   * @param recordCount - The total number of records
+   * @param recordIndex - The index of the current record
+   * @param ipSize - The size of an IP address in bytes
+   * @param MAIN_RECORD_SIZE - The size of the main record data
+   * @returns Location data object
+   */
   function parseRecord(dataBuffer: ArrayBuffer, recordCount: number, recordIndex: number, ipSize: number, MAIN_RECORD_SIZE: number) {
     const recordBuffer = dataBuffer.slice(
       recordCount * ipSize * 2 + recordIndex * MAIN_RECORD_SIZE,
