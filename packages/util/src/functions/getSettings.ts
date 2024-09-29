@@ -1,79 +1,72 @@
+import { dirname, join, resolve as resolvePath } from 'node:path'
 import process from 'node:process'
-import { defu } from 'defu'
+import { fileURLToPath } from 'node:url'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+/**
+ * Default settings for the IpLocationApi
+ */
 const DEFAULT_SETTINGS: IpLocationApiSettings = {
-  fields: ['country'],
-  dataDir: '../data/',
-  tmpDataDir: '../tmp/',
-  smallMemory: false,
-  smallMemoryFileSize: 4096,
-  addCountryInfo: false,
   licenseKey: 'redist',
-  ipLocationDb: '',
-  downloadType: 'reuse',
   series: 'GeoLite2',
+  dataDir: '../data',
+  tmpDataDir: '../tmp',
+  fields: ['country'],
   language: 'en',
-  fakeData: false,
-  autoUpdate: 'default',
-  sameDbSetting: false,
-  multiDbDir: false,
-  browserType: false,
-  silent: false,
+  fieldDir: '',
+}
+
+export const MAIN_FIELDS = ['latitude', 'longitude', 'area', 'postcode'] as const
+export const LOCATION_FIELDS = ['country', 'region1', 'region1_name', 'region2', 'region2_name', 'metro', 'timezone', 'city', 'eu'] as const
+
+/**
+ * The settings for the IpLocationApi
+ */
+export interface IpLocationApiInputSettings {
+  /**
+   * Your MaxMind license key or 'redist' for free GeoLite2 Redistributed database.
+   * @default 'redist'
+   */
+  licenseKey?: string
+  /**
+   * The series of the database, GeoLite2 or GeoIP2. If you use 'redist', this setting is ignored.
+   * @default 'GeoLite2'
+   * @requires licenseKey
+   */
+  series?: 'GeoLite2' | 'GeoIP2'
+
+  /**
+   * The directory to save the database
+   * @default '../data'
+   */
+  dataDir?: string
+  /**
+   * The directory to save the temporary database
+   * @default '../tmp'
+   */
+  tmpDataDir?: string
+  /**
+   * The fields to include in the database
+   * @default ['country']
+   */
+  fields?: ((typeof MAIN_FIELDS)[number] | (typeof LOCATION_FIELDS)[number])[] | 'all'
+  /**
+   * The language of the database
+   * @default 'en'
+   */
+  language?: 'de' | 'en' | 'es' | 'fr' | 'ja' | 'pt-BR' | 'ru' | 'zh-CN'
 }
 
 export interface IpLocationApiSettings {
-  fields: string[]
+  licenseKey: string
+  series: 'GeoLite2' | 'GeoIP2'
   dataDir: string
   tmpDataDir: string
-  smallMemory: boolean
-  smallMemoryFileSize: number
-  addCountryInfo: boolean
-  licenseKey: string
-  ipLocationDb: string
-  downloadType: string
-  series: string
-  language: string
-  fakeData: boolean
-  autoUpdate: string
-  sameDbSetting: boolean
-  multiDbDir: boolean
-  browserType: boolean
-  silent: boolean
-}
-
-/**
- * Get the settings from the environment variables, the CLI arguments and function arguments, and merge them with the default settings
- * @param settings The settings from the function arguments
- * @returns The settings merged with the environment variables, the CLI arguments and the default settings
- */
-export function getSettings(settings?: Partial<IpLocationApiSettings>): IpLocationApiSettings {
-  const keys = Object.keys(DEFAULT_SETTINGS) as (keyof IpLocationApiSettings)[]
-  const result: Record<string, any> = {}
-  const cliArgs = process.argv.slice(2)
-  for (const key of keys) {
-    const envKey = getKey(key)
-
-    //* If the environment variable is set, use it
-    const envValue = process.env[envKey]
-    if (envValue) {
-      result[key] = mapSetting(key, envValue)
-    }
-
-    //* If the CLI argument is set, use it
-    const cliArg = cliArgs.find(arg => arg.startsWith(`${key}=`))
-    if (cliArg) {
-      result[key] = mapSetting(key, cliArg.split('=')[1]!)
-    }
-  }
-
-  //* Merge the settings
-  return defu(
-    {
-      ...result,
-      ...settings,
-    },
-    DEFAULT_SETTINGS,
-  )
+  fields: ((typeof MAIN_FIELDS)[number] | (typeof LOCATION_FIELDS)[number])[]
+  language: 'de' | 'en' | 'es' | 'fr' | 'ja' | 'pt-BR' | 'ru' | 'zh-CN'
+  fieldDir: string
 }
 
 /**
@@ -89,33 +82,146 @@ function getKey(key: string): string {
 }
 
 /**
- * Map the setting to the correct type
- * @param key The key to map
- * @param value The value to map
- * @returns The mapped value
+ * The bit flag for the fields
  */
-function mapSetting(key: keyof IpLocationApiSettings, value: string): typeof DEFAULT_SETTINGS[typeof key] {
-  switch (key) {
-    //* String array
-    case 'fields':
-      return value.split(/\s*,\s*/)
+const FIELD_BIT_FLAG: Record<((typeof MAIN_FIELDS)[number] | (typeof LOCATION_FIELDS)[number]), number> = {
+  latitude: 1,
+  longitude: 2,
+  area: 4,
+  postcode: 8,
+  country: 16,
+  region1: 32,
+  region1_name: 64,
+  region2: 128,
+  region2_name: 256,
+  metro: 512,
+  timezone: 1024,
+  city: 2048,
+  eu: 4096,
+}
 
-    //* Boolean
-    case 'smallMemory':
-    case 'addCountryInfo':
-    case 'fakeData':
-    case 'sameDbSetting':
-    case 'multiDbDir':
-    case 'browserType':
-    case 'silent':
-      return value === 'true'
+/**
+ * Get the settings from various sources and merge them with default values
+ * @param settings The settings from the function parameters
+ * @returns The merged and processed IpLocationApiSettings
+ */
+export function getSettings(settings?: IpLocationApiInputSettings): IpLocationApiSettings {
+  //* Fetch settings from different sources
+  const envSettings = getFromIlaObject(process.env)
+  const cliSettings = getFromIlaObject(
+    Object.fromEntries(
+      process.argv
+        .slice(2)
+        .map(arg => arg.split('=') as [string, string])
+        .filter(([key, value]) => key.startsWith('ILA_') && value),
+    ),
+  )
 
-    //* Number
-    case 'smallMemoryFileSize':
-      return Number(value)
-
-    //* String
-    default:
-      return value
+  //* Merge settings with priority: defaults < env < CLI < function params
+  const mergedSettings = {
+    ...DEFAULT_SETTINGS,
+    ...envSettings,
+    ...cliSettings,
+    ...settings,
   }
+
+  //* Process and validate individual settings
+  const fields = processFields(mergedSettings.fields)
+  const series = processSeries(mergedSettings.series)
+  const dataDir = processDirectory(mergedSettings.dataDir)
+  const tmpDataDir = processDirectory(mergedSettings.tmpDataDir)
+  const language = processLanguage(mergedSettings.language)
+
+  //* Construct and return the final settings
+  return {
+    licenseKey: mergedSettings.licenseKey,
+    dataDir,
+    tmpDataDir,
+    fields,
+    series,
+    language,
+    fieldDir: join(dataDir, fields.reduce((sum, v) => sum + FIELD_BIT_FLAG[v], 0).toString(36)),
+  }
+}
+
+/**
+ * Extract IpLocationApi settings from an object with ILA_ prefixed keys
+ * @param ilaObject An object containing ILA_ prefixed keys
+ * @returns Partial IpLocationApiInputSettings
+ */
+function getFromIlaObject(ilaObject: Record<string, string | undefined>): Partial<IpLocationApiInputSettings> {
+  return {
+    licenseKey: ilaObject[getKey('licenseKey')],
+    series: ilaObject[getKey('series')] as 'GeoLite2' | 'GeoIP2',
+    dataDir: ilaObject[getKey('dataDir')],
+    tmpDataDir: ilaObject[getKey('tmpDataDir')],
+    fields: ilaObject[getKey('fields')] === 'all' ? 'all' : ilaObject[getKey('fields')]?.split(',') as IpLocationApiInputSettings['fields'],
+    language: ilaObject[getKey('language')] as IpLocationApiInputSettings['language'],
+  }
+}
+
+/**
+ * Process and validate the fields setting
+ * @param fields The input fields setting
+ * @returns Validated array of fields or default fields
+ */
+function processFields(fields: IpLocationApiInputSettings['fields']): IpLocationApiSettings['fields'] {
+  if (fields === 'all') {
+    return [...MAIN_FIELDS, ...LOCATION_FIELDS]
+  }
+
+  if (Array.isArray(fields)) {
+    const validFields = fields.filter(field =>
+      MAIN_FIELDS.includes(field as any) || LOCATION_FIELDS.includes(field as any),
+    ) as IpLocationApiSettings['fields']
+
+    return validFields.length > 0 ? validFields : DEFAULT_SETTINGS.fields
+  }
+
+  return DEFAULT_SETTINGS.fields
+}
+
+/**
+ * Process and validate the series setting
+ * @param series The input series setting
+ * @returns Validated series or default series
+ */
+function processSeries(series: IpLocationApiInputSettings['series']): IpLocationApiSettings['series'] {
+  if (series === 'GeoLite2' || series === 'GeoIP2') {
+    return series
+  }
+
+  return DEFAULT_SETTINGS.series
+}
+
+/**
+ * Regular expression to match Windows drive letters
+ */
+const WINDOWS_DRIVE_REG = /^[a-z]:\\/i
+
+/**
+ * Process and resolve the directory path
+ * @param directory The input directory path
+ * @returns Resolved absolute directory path
+ */
+function processDirectory(directory: string): string {
+  //* If the path is not absolute, resolve it relative to __dirname
+  if (!directory.startsWith('/') && !directory.startsWith('\\\\') && !WINDOWS_DRIVE_REG.test(directory)) {
+    directory = resolvePath(__dirname, directory)
+  }
+  return directory
+}
+
+/**
+ * Process and validate the language setting
+ * @param language The input language setting
+ * @returns Validated language or default language
+ */
+function processLanguage(language: IpLocationApiInputSettings['language']): IpLocationApiSettings['language'] {
+  const validLanguages = ['de', 'en', 'es', 'fr', 'ja', 'pt-BR', 'ru', 'zh-CN'] as const
+  if (language && validLanguages.includes(language)) {
+    return language
+  }
+
+  return DEFAULT_SETTINGS.language
 }
