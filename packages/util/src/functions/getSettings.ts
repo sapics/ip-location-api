@@ -133,7 +133,7 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
     ...DEFAULT_SETTINGS,
     ...envSettings,
     ...cliSettings,
-    ...settings,
+    ...(settings ?? {}),
   }
 
   //* Process and validate individual settings
@@ -187,16 +187,21 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
  * @returns Partial IpLocationApiInputSettings
  */
 function getFromIlaObject(ilaObject: Record<string, string | undefined>): Partial<IpLocationApiInputSettings> {
-  return {
+  const settings = {
     licenseKey: ilaObject[getKey('licenseKey')],
     series: ilaObject[getKey('series')] as 'GeoLite2' | 'GeoIP2',
     dataDir: ilaObject[getKey('dataDir')],
     tmpDataDir: ilaObject[getKey('tmpDataDir')],
     fields: ilaObject[getKey('fields')] === 'all' ? 'all' : ilaObject[getKey('fields')]?.split(',') as IpLocationApiInputSettings['fields'],
     language: ilaObject[getKey('language')] as IpLocationApiInputSettings['language'],
-    smallMemory: ilaObject[getKey('smallMemory')] === 'true',
-    smallMemoryFileSize: ilaObject[getKey('smallMemoryFileSize')] ? Number.parseInt(ilaObject[getKey('smallMemoryFileSize')]!) : DEFAULT_SETTINGS.smallMemoryFileSize,
+    smallMemory: ilaObject[getKey('smallMemory')] ? ilaObject[getKey('smallMemory')] === 'true' : undefined,
+    smallMemoryFileSize: ilaObject[getKey('smallMemoryFileSize')] ? Number.parseInt(ilaObject[getKey('smallMemoryFileSize')]!) : undefined,
   }
+
+  //* Remove keys with undefined values
+  return Object.fromEntries(
+    Object.entries(settings).filter(([_, value]) => value !== undefined),
+  ) as Partial<IpLocationApiInputSettings>
 }
 
 /**

@@ -5,7 +5,7 @@
  * @throws {Error} If the input number is out of range.
  */
 export function numberToCountryCode(num: number): string {
-  if (num < 0 || num > 675) {
+  if (num < 0 || num > 675 || !Number.isInteger(num)) {
     throw new Error('Input number must be between 0 and 675')
   }
 
