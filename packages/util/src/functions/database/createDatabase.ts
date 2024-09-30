@@ -2,7 +2,7 @@ import type { IpLocationApiSettings } from '../getSettings.js'
 import { createReadStream } from 'node:fs'
 import path from 'node:path'
 import { parse } from '@fast-csv/parse'
-import { LOCATION_FIELDS } from '../getSettings.js'
+import { LOCATION_FIELDS } from '../../constants.js'
 import { createBlockDatabase } from './createBlockDatabase.js'
 import { createLocationDatabase } from './createLocationDatabase.js'
 
@@ -10,9 +10,8 @@ import { createLocationDatabase } from './createLocationDatabase.js'
  * Creates a database for IP location data.
  * @param files - Array of file paths to process.
  * @param settings - IP location API settings.
- * @param dataType - Type of data being processed ('Country' or 'City').
  */
-export async function createDatabase(files: string[], settings: IpLocationApiSettings, dataType: 'Country' | 'City'): Promise<void> {
+export async function createDatabase(files: string[], settings: IpLocationApiSettings): Promise<void> {
   const locationSources = files.filter(file => file.includes('Locations'))
   //* Ensure the English file is first (should only have max 2 location files)
   locationSources.sort((a, b) => {
@@ -26,11 +25,11 @@ export async function createDatabase(files: string[], settings: IpLocationApiSet
   //* Extract location data from files
   const locationData: Record<number, LocationData | string>[] = []
   for (const locationSource of locationSources) {
-    locationData.push(await getLocationData(locationSource, settings, dataType))
+    locationData.push(await getLocationData(locationSource, settings))
   }
 
   //* Optimize location file if necessary
-  const makeLocationFile = dataType !== 'Country' && LOCATION_FIELDS.some(field => settings.fields.includes(field))
+  const makeLocationFile = settings.dataType !== 'Country' && settings.locationFile
   if (makeLocationFile) {
     minifyLocationData(locationData as Record<number, LocationData>[], settings)
   }
@@ -61,28 +60,28 @@ export interface LocationData {
   metro_code: string
   time_zone: string
   is_in_european_union: string
+  counter?: number
 }
 
 /**
  * Extracts location data from a CSV file.
  * @param file - Path to the CSV file.
  * @param settings - IP location API settings.
- * @param dataType - Type of data being processed ('Country' or 'City').
  * @returns A promise that resolves to a record of location data.
  */
-async function getLocationData(file: string, settings: IpLocationApiSettings, dataType: 'Country' | 'City'): Promise<Record<string, LocationData | string>> {
+async function getLocationData(file: string, settings: IpLocationApiSettings): Promise<Record<number, LocationData | string>> {
   const stream = createReadStream(path.join(settings.tmpDataDir, file))
-  const result: Record<string, LocationData | string> = {}
+  const result: Record<number, LocationData | string> = {}
   return new Promise((resolve, reject) => {
     stream
       .pipe(parse({ headers: true }))
       .on('error', reject)
       .on('data', (row: LocationData) => {
-        if (dataType === 'Country') {
-          result[row.geoname_id] = row.country_iso_code
+        if (settings.dataType === 'Country') {
+          result[Number.parseInt(row.geoname_id)] = row.country_iso_code
         }
         else {
-          result[row.geoname_id] = row
+          result[Number.parseInt(row.geoname_id)] = row
         }
       })
       .on('end', () => resolve(result))
@@ -189,7 +188,7 @@ function groupLocationsByPrimaryField(
 ): Record<string, number[]> {
   const groupedLocations: Record<string, number[]> = {}
   for (const locId of locIds) {
-    const key = primaryData[locId]![primaryField as keyof LocationData]
+    const key = primaryData[locId]![primaryField as keyof LocationData]!
     if (!groupedLocations[key]) {
       groupedLocations[key] = []
     }

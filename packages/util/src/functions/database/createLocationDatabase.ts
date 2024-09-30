@@ -1,11 +1,11 @@
 import type { WriteStream } from 'node:fs'
+import type { IpLocationApiSettings } from '../getSettings.js'
 import type { LocationData } from './createDatabase.js'
 import { Buffer } from 'node:buffer'
 import { createWriteStream } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { getFieldsSize } from '../getFieldsSize.js'
-import { type IpLocationApiSettings, LOCATION_FIELDS } from '../getSettings.js'
+import { makeDatabase } from '../makeDatabase.js'
 import { stringToNumber37 } from '../stringToNumber37.js'
 
 /**
@@ -74,12 +74,7 @@ function createLocationBuffer(
   regionDatabases: LocationDatabases,
   nameDataStream: WriteStream,
 ): Buffer {
-  const buffer = Buffer.alloc(
-    getFieldsSize(
-      settings.fields
-        .filter(field => (LOCATION_FIELDS as unknown as string[]).includes(field)),
-    ),
-  )
+  const buffer = Buffer.alloc(settings.locationRecordSize)
   let offset = 0
 
   //* Write each field to the buffer if it's included in the settings
@@ -194,19 +189,6 @@ function writeCity(buffer: Buffer, offset: number, locationInfo: LocationData, c
     buffer.writeUInt32LE(inputBuffer(cityNameToIndex, nameDataStream, cityName), offset)
   }
   return offset + 4
-}
-
-/**
- * Creates or retrieves an entry in a database.
- * @param name - The name to store or retrieve
- * @param database - The database to use
- * @returns The index of the name in the database
- */
-function makeDatabase(name: string, database: Record<string, number>): number {
-  if (database[name] === undefined) {
-    database[name] = Object.keys(database).length
-  }
-  return database[name]
 }
 
 /**
