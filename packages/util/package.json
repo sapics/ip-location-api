@@ -17,7 +17,8 @@
   ],
   "exports": {
     ".": "./dist/index.js",
-    "./browser": "./dist/browser.js"
+    "./browser": "./dist/browser.js",
+    "./db": "./dist/db.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
