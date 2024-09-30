@@ -6,28 +6,28 @@ import path from 'node:path'
 import { Writable } from 'node:stream'
 import ky from 'ky'
 import { open } from 'yauzl'
-
-const MAXMIND_URL = 'https://download.maxmind.com/app/geoip_download'
-const DATABASE_SUFFIX_SHA = '.zip.sha256'
-const DATABASE_SUFFIX_ZIP = '.zip'
+import { DATABASE_SUFFIX_SHA, DATABASE_SUFFIX_ZIP, MAXMIND_URL } from '../../constants.js'
 
 /**
  * Downloads and extracts the database if an update is needed.
  * @param settings - The settings object.
  * @returns An array of extracted file names or false if no update was needed.
  */
-export async function downloadAndExtractDatabase(settings: IpLocationApiSettings): Promise<{ files: string[] | false, dataType: 'Country' | 'City' }> {
-  const { dataType, edition, src } = getDatabaseInfo(settings)
+export async function downloadAndExtractDatabase(settings: IpLocationApiSettings): Promise<{
+  files: string[] | false
+  sha256: string
+}> {
+  const { edition, src } = getDatabaseInfo(settings)
   const remoteHash = await getRemoteSha256(settings, edition)
   const localHash = await getLocalSha256(settings, edition)
 
   if (await isUpToDate(settings, edition, remoteHash, localHash)) {
-    return { files: false, dataType }
+    return { files: false, sha256: remoteHash }
   }
 
   const zipPath = await downloadDatabase(settings, edition)
   const files = await extractDatabase(zipPath, settings.tmpDataDir, src)
-  return { files, dataType }
+  return { files, sha256: remoteHash }
 }
 
 /**
@@ -35,21 +35,20 @@ export async function downloadAndExtractDatabase(settings: IpLocationApiSettings
  * @param settings - The settings object.
  * @returns An object containing the edition and source file names.
  */
-function getDatabaseInfo(settings: IpLocationApiSettings): { edition: string, src: string[], dataType: 'Country' | 'City' } {
-  const dataType = settings.fields.length === 1 && settings.fields[0] === 'country' ? 'Country' : 'City'
-  const edition = `${settings.series}-${dataType}-CSV`
+function getDatabaseInfo(settings: IpLocationApiSettings): { edition: string, src: string[] } {
+  const edition = `${settings.series}-${settings.dataType}-CSV`
   const baseSrc = [
-    `${settings.series}-${dataType}-Locations-en.csv`,
-    `${settings.series}-${dataType}-Blocks-IPv4.csv`,
-    `${settings.series}-${dataType}-Blocks-IPv6.csv`,
+    `${settings.series}-${settings.dataType}-Locations-en.csv`,
+    `${settings.series}-${settings.dataType}-Blocks-IPv4.csv`,
+    `${settings.series}-${settings.dataType}-Blocks-IPv6.csv`,
   ]
 
   //* Add language-specific file for non-English City databases
-  const src = settings.language !== 'en' && dataType === 'City'
-    ? [...baseSrc, `${settings.series}-${dataType}-Locations-${settings.language}.csv`]
+  const src = settings.language !== 'en' && settings.dataType === 'City'
+    ? [...baseSrc, `${settings.series}-${settings.dataType}-Locations-${settings.language}.csv`]
     : baseSrc
 
-  return { edition, src, dataType }
+  return { edition, src }
 }
 
 /**

@@ -1,25 +1,18 @@
 import { dirname, join, resolve as resolvePath } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { DEFAULT_SETTINGS, LOCATION_FIELDS, MAIN_FIELDS, v4, v6 } from '../constants.js'
+import { getFieldsSize } from './getFieldsSize.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-/**
- * Default settings for the IpLocationApi
- */
-const DEFAULT_SETTINGS: IpLocationApiSettings = {
-  licenseKey: 'redist',
-  series: 'GeoLite2',
-  dataDir: '../data',
-  tmpDataDir: '../tmp',
-  fields: ['country'],
-  language: 'en',
-  fieldDir: '',
+export interface LocalDatabase {
+  version: 4 | 6
+  recordSize: number
+  fileLineMax: number
+  folderLineMax: number
 }
-
-export const MAIN_FIELDS = ['latitude', 'longitude', 'area', 'postcode'] as const
-export const LOCATION_FIELDS = ['country', 'region1', 'region1_name', 'region2', 'region2_name', 'metro', 'timezone', 'city', 'eu'] as const
 
 /**
  * The settings for the IpLocationApi
@@ -57,6 +50,16 @@ export interface IpLocationApiInputSettings {
    * @default 'en'
    */
   language?: 'de' | 'en' | 'es' | 'fr' | 'ja' | 'pt-BR' | 'ru' | 'zh-CN'
+  /**
+   * Whether to use small memory mode
+   * @default false
+   */
+  smallMemory?: boolean
+  /**
+   * The file size for small memory mode
+   * @default 4096
+   */
+  smallMemoryFileSize?: number
 }
 
 export interface IpLocationApiSettings {
@@ -67,6 +70,14 @@ export interface IpLocationApiSettings {
   fields: ((typeof MAIN_FIELDS)[number] | (typeof LOCATION_FIELDS)[number])[]
   language: 'de' | 'en' | 'es' | 'fr' | 'ja' | 'pt-BR' | 'ru' | 'zh-CN'
   fieldDir: string
+  smallMemory: boolean
+  smallMemoryFileSize: number
+  dataType: 'Country' | 'City'
+  locationFile: boolean
+  mainRecordSize: number
+  locationRecordSize: number
+  v4: LocalDatabase
+  v6: LocalDatabase
 }
 
 /**
@@ -131,6 +142,24 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
   const dataDir = processDirectory(mergedSettings.dataDir)
   const tmpDataDir = processDirectory(mergedSettings.tmpDataDir)
   const language = processLanguage(mergedSettings.language)
+  const dataType = fields.length === 1 && fields[0] === 'country' ? 'Country' : 'City'
+  const locationFile = dataType !== 'Country' && LOCATION_FIELDS.some(field => fields.includes(field))
+  let mainRecordSize = dataType === 'Country' ? 2 : getFieldsSize(fields.filter(field => (MAIN_FIELDS as unknown as string[]).includes(field)))
+  if (locationFile)
+    mainRecordSize += 4
+
+  v4.recordSize = mainRecordSize
+  v6.recordSize = mainRecordSize
+
+  if (mergedSettings.smallMemory) {
+    v4.recordSize += 4
+    v4.fileLineMax = (mergedSettings.smallMemoryFileSize / v4.recordSize | 0) || 1
+    v4.folderLineMax = v4.fileLineMax * 1024
+
+    v6.recordSize += 8
+    v6.fileLineMax = (mergedSettings.smallMemoryFileSize / v6.recordSize | 0) || 1
+    v6.folderLineMax = v6.fileLineMax * 1024
+  }
 
   //* Construct and return the final settings
   return {
@@ -141,6 +170,14 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
     series,
     language,
     fieldDir: join(dataDir, fields.reduce((sum, v) => sum + FIELD_BIT_FLAG[v], 0).toString(36)),
+    smallMemory: mergedSettings.smallMemory,
+    smallMemoryFileSize: mergedSettings.smallMemoryFileSize,
+    dataType,
+    locationFile,
+    mainRecordSize,
+    locationRecordSize: getFieldsSize(fields.filter(field => (LOCATION_FIELDS as unknown as string[]).includes(field))),
+    v4,
+    v6,
   }
 }
 
@@ -157,6 +194,8 @@ function getFromIlaObject(ilaObject: Record<string, string | undefined>): Partia
     tmpDataDir: ilaObject[getKey('tmpDataDir')],
     fields: ilaObject[getKey('fields')] === 'all' ? 'all' : ilaObject[getKey('fields')]?.split(',') as IpLocationApiInputSettings['fields'],
     language: ilaObject[getKey('language')] as IpLocationApiInputSettings['language'],
+    smallMemory: ilaObject[getKey('smallMemory')] === 'true',
+    smallMemoryFileSize: ilaObject[getKey('smallMemoryFileSize')] ? Number.parseInt(ilaObject[getKey('smallMemoryFileSize')]!) : DEFAULT_SETTINGS.smallMemoryFileSize,
   }
 }
 
