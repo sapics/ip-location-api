@@ -1,33 +1,33 @@
 {
-	"name": "@iplookup/geocode",
-	"version": "1.0.0",
-	"description": "Browser api to lookup geocode from IP address",
-	"keywords": [
-		"location",
-		"iplookup",
-		"lookup",
-		"geo",
-		"geocode",
-		"geoip",
-		"ip",
-		"ipv4",
-		"ipv6",
-		"ip-location-db",
-		"country"
-	],
-	"author": "sapics",
-	"homepage": "https://github.com/sapics/ip-location-api",
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/sapics/ip-location-api.git"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"license": "CC BY 4.0 and MIT",
-	"main": "iplookup.cjs",
-	"exports": {
-		"import": "./iplookup.mjs",
-		"require": "./iplookup.cjs"
-	}
+  "name": "@iplookup/geocode",
+  "version": "1.0.20241002",
+  "description": "Browser api to lookup geocode from IP address",
+  "keywords": [
+    "location",
+    "iplookup",
+    "lookup",
+    "geo",
+    "geocode",
+    "geoip",
+    "ip",
+    "ipv4",
+    "ipv6",
+    "ip-location-db",
+    "country"
+  ],
+  "author": "sapics",
+  "homepage": "https://github.com/sapics/ip-location-api",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sapics/ip-location-api.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "CC BY 4.0 and MIT",
+  "main": "iplookup.cjs",
+  "exports": {
+    "import": "./iplookup.mjs",
+    "require": "./iplookup.cjs"
+  }
 }
