@@ -40,5 +40,23 @@
   "scripts": {
     "build": "vite build",
     "build:watch": "vite build --watch"
+  },
+  "peerDependencies": {
+    "countries-list": "^3.1.1"
+  },
+  "peerDependenciesMeta": {
+    "countries-list": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@fast-csv/parse": "^5.0.0",
+    "ip-address": "^9.0.5",
+    "ky": "^1.7.2",
+    "yauzl": "^3.1.3"
+  },
+  "devDependencies": {
+    "@iplookup/util": "workspace:*",
+    "countries-list": "^3.1.1"
   }
 }

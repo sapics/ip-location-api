@@ -21,11 +21,13 @@ interface LocationDatabases {
  * Creates a location database from the provided location data.
  * @param locationData - Array of location data records
  * @param locationIdList - List of location IDs to process
+ * @param areaDatabase - A database of area data.
  * @param settings - IP location API settings
  */
 export async function createLocationDatabase(
   locationData: Record<number, LocationData | string>[],
   locationIdList: number[],
+  areaDatabase: Record<string, number>,
   settings: IpLocationApiSettings,
 ): Promise<void> {
   const locationDataMap = locationData[0] as Record<number, LocationData>
@@ -53,7 +55,7 @@ export async function createLocationDatabase(
   locationDataStream.end()
   nameDataStream.end()
 
-  await createSubJsonFile(settings, regionDatabases, euCountryCodes)
+  await createSubJsonFile(settings, regionDatabases, euCountryCodes, areaDatabase)
 }
 
 /**
@@ -89,9 +91,9 @@ function createLocationBuffer(
     city: () => writeCity(buffer, offset, locationInfo, cityNameToIndex, nameDataStream),
   }
 
-  for (const field of settings.fields) {
-    if (field in fieldWriters) {
-      offset = fieldWriters[field]!()
+  for (const [field, writer] of Object.entries(fieldWriters)) {
+    if (settings.fields.includes(field as IpLocationApiSettings['fields'][number])) {
+      offset = writer()
     }
   }
 
@@ -196,16 +198,19 @@ function writeCity(buffer: Buffer, offset: number, locationInfo: LocationData, c
  * @param settings - IP location API settings
  * @param regionDatabases - Object containing various location databases
  * @param euCountryCodes - Hash table for EU status
+ * @param areaDatabase - A database of area data.
  */
 async function createSubJsonFile(
   settings: IpLocationApiSettings,
   regionDatabases: LocationDatabases,
   euCountryCodes: Record<string, boolean>,
+  areaDatabase: Record<string, number>,
 ): Promise<void> {
   const subJsonData: Record<string, any> = {
     region1_name: databaseToArray(regionDatabases.sub1Database),
     region2_name: databaseToArray(regionDatabases.sub2Database),
     timezone: databaseToArray(regionDatabases.timezoneDatabase),
+    area: databaseToArray(areaDatabase).map(area => Number.parseInt(area, 10) || 0),
     eu: euCountryCodes,
   }
 
@@ -216,6 +221,8 @@ async function createSubJsonFile(
     delete subJsonData.region2_name
   if (!settings.fields.includes('timezone'))
     delete subJsonData.timezone
+  if (!settings.fields.includes('area'))
+    delete subJsonData.area
   if (!settings.fields.includes('eu'))
     delete subJsonData.eu
 
