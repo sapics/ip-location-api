@@ -78,7 +78,27 @@ importers:
         specifier: workspace:*
         version: link:../util
 
-  packages/ip-location-api: {}
+  packages/ip-location-api:
+    dependencies:
+      '@fast-csv/parse':
+        specifier: ^5.0.0
+        version: 5.0.0
+      ip-address:
+        specifier: ^9.0.5
+        version: 9.0.5
+      ky:
+        specifier: ^1.7.2
+        version: 1.7.2
+      yauzl:
+        specifier: ^3.1.3
+        version: 3.1.3
+    devDependencies:
+      '@iplookup/util':
+        specifier: workspace:*
+        version: link:../util
+      countries-list:
+        specifier: ^3.1.1
+        version: 3.1.1
 
   packages/util:
     dependencies:
@@ -1134,6 +1154,9 @@ packages:
 
   core-js-compat@3.38.1:
     resolution: {integrity: sha512-JRH6gfXxGmrzF3tZ57lFx97YARxCXPaMzPo6jELZhv88pBH5VXpQ+y0znKGlFnzuaihqhLbefxSJxWJMPtfDzw==}
+
+  countries-list@3.1.1:
+    resolution: {integrity: sha512-nPklKJ5qtmY5MdBKw1NiBAoyx5Sa7p2yPpljZyQ7gyCN1m+eMFs9I6CT37Mxt8zvR5L3VzD3DJBE4WQzX3WF4A==}
 
   cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -3623,6 +3646,8 @@ snapshots:
   core-js-compat@3.38.1:
     dependencies:
       browserslist: 4.24.0
+
+  countries-list@3.1.1: {}
 
   cross-spawn@7.0.3:
     dependencies:
