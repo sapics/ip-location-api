@@ -18,15 +18,15 @@ export const LOADED_DATA: {
   }
 } = {}
 
+/**
+ * Reloads the IP location data based on the provided settings.
+ * @param inputSettings - Optional input settings to override the default settings.
+ */
 export async function reload(inputSettings?: IpLocationApiInputSettings): Promise<void> {
   const settings = getSettings(inputSettings)
 
-  let directoryToFind = settings.dataDir
-  if (settings.smallMemory) {
-    directoryToFind = join(settings.dataDir, 'v4')
-  }
-
-  if (!existsSync(directoryToFind)) {
+  //* If the data directory doesn't exist, update the database
+  if (!existsSync(join(settings.fieldDir, '4-1.dat'))) {
     await update(settings)
   }
 
@@ -45,11 +45,14 @@ export async function reload(inputSettings?: IpLocationApiInputSettings): Promis
     city: undefined as Buffer | undefined,
     sub: undefined as Buffer | undefined,
   }
+
+  //* Create an array of promises to read all necessary files
   const promises: Promise<void>[] = [
     readFile(join(settings.fieldDir, '4-1.dat')).then((buffer) => { buffers.v4.dat1 = buffer }),
     readFile(join(settings.fieldDir, '6-1.dat')).then((buffer) => { buffers.v6.dat1 = buffer }),
   ]
 
+  //* Add additional file reading promises if not in small memory mode
   if (!settings.smallMemory) {
     promises.push(
       readFile(join(settings.fieldDir, '4-2.dat')).then((buffer) => { buffers.v4.dat2 = buffer }),
@@ -59,6 +62,7 @@ export async function reload(inputSettings?: IpLocationApiInputSettings): Promis
     )
   }
 
+  //* Add location-related file reading promises based on settings
   if (settings.locationFile) {
     promises.push(
       readFile(join(settings.fieldDir, 'location.dat')).then((buffer) => { buffers.location = buffer }),
@@ -77,14 +81,17 @@ export async function reload(inputSettings?: IpLocationApiInputSettings): Promis
     }
   }
 
+  //* Wait for all file reading operations to complete
   await Promise.all(promises)
 
   const v4 = settings.v4
   const v6 = settings.v6
 
+  //* Create typed arrays from the loaded buffer data
   const v4StartIps = new Uint32Array(buffers.v4.dat1!.buffer, 0, buffers.v4.dat1!.byteLength >> 2)
   const v6StartIps = new BigUint64Array(buffers.v6.dat1!.buffer, 0, buffers.v6.dat1!.byteLength >> 3)
 
+  //* Set up v4 loaded data
   v4.loadedData = {
     startIps: v4StartIps,
     endIps: buffers.v4.dat2 ? new Uint32Array(buffers.v4.dat2.buffer, 0, buffers.v4.dat2.byteLength >> 2) : undefined,
@@ -93,6 +100,7 @@ export async function reload(inputSettings?: IpLocationApiInputSettings): Promis
     firstIp: v4StartIps[0]!,
   }
 
+  //* Set up v6 loaded data
   v6.loadedData = {
     startIps: v6StartIps,
     endIps: buffers.v6.dat2 ? new BigUint64Array(buffers.v6.dat2.buffer, 0, buffers.v6.dat2.byteLength >> 3) : undefined,
@@ -101,6 +109,7 @@ export async function reload(inputSettings?: IpLocationApiInputSettings): Promis
     firstIp: v6StartIps[0]!,
   }
 
+  //* Load additional data for City dataType
   if (settings.dataType === 'City') {
     LOADED_DATA.location = buffers.location
     LOADED_DATA.city = buffers.city
@@ -117,7 +126,10 @@ export async function reload(inputSettings?: IpLocationApiInputSettings): Promis
   }
 }
 
-export function clear() {
+/**
+ * Clears the loaded IP location data from memory.
+ */
+export function clear(): void {
   const settings = SAVED_SETTINGS
   settings.v4.loadedData = undefined
   settings.v6.loadedData = undefined

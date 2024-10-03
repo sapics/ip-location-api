@@ -22,54 +22,6 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
   }
 
   /**
-   * Loads the index for the specified IP version.
-   * @param ipVersion - The IP version (4 or 6)
-   * @returns A promise that resolves to the loaded index
-   */
-  async function loadIndex(ipVersion: 4 | 6) {
-    const baseUrl = getBaseUrl()
-    return downloadIndex(baseUrl, ipVersion)
-  }
-
-  /**
-   * Determines the base URL for downloading the index.
-   * @returns The base URL as a string
-   */
-  function getBaseUrl(): string {
-    //* If we are not in the DOM we just use the CDN_URL to download the index
-    if (typeof document === 'undefined' || !document.currentScript) {
-      return CDN_URL
-    }
-
-    //* If we aren't in a SCRIPT element we use the CDN_URL
-    if (!(document.currentScript instanceof HTMLScriptElement)) {
-      return CDN_URL
-    }
-
-    //* Extract the base URL from the script's src attribute
-    return document.currentScript.src.split('/').slice(0, -1).join('/')
-  }
-
-  /**
-   * Downloads the index file for the specified IP version.
-   * @param baseUrl - The base URL for downloading
-   * @param version - The IP version (4 or 6)
-   * @returns A promise that resolves to the downloaded index
-   */
-  async function downloadIndex(baseUrl: string, version: 4 | 6) {
-    const result = await fetchArrayBuffer(
-      new URL(`indexes/${version}.idx`, baseUrl),
-    )
-    if (!result)
-      return // TODO add debug log
-
-    const { versionHeader, buffer } = result
-    if (versionHeader)
-      DATA_URL[version] = CDN_URL.replace(/\/$/, `@${versionHeader}`)
-    return (INDEXES[version] = new BigUint64Array(buffer))
-  }
-
-  /**
    * Performs an IP lookup and returns location data.
    * @param ipInput - The IP address to look up
    * @returns A promise that resolves to location data or null if not found
@@ -123,6 +75,54 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
 
     return null
   } as (ipInput: string) => Promise<T extends 'country' ? { country: string } | null : { latitude: number, longitude: number, country: string } | null>
+
+  /**
+   * Loads the index for the specified IP version.
+   * @param ipVersion - The IP version (4 or 6)
+   * @returns A promise that resolves to the loaded index
+   */
+  async function loadIndex(ipVersion: 4 | 6) {
+    const baseUrl = getBaseUrl()
+    return downloadIndex(baseUrl, ipVersion)
+  }
+
+  /**
+   * Determines the base URL for downloading the index.
+   * @returns The base URL as a string
+   */
+  function getBaseUrl(): string {
+    //* If we are not in the DOM we just use the CDN_URL to download the index
+    if (typeof document === 'undefined' || !document.currentScript) {
+      return CDN_URL
+    }
+
+    //* If we aren't in a SCRIPT element we use the CDN_URL
+    if (!(document.currentScript instanceof HTMLScriptElement)) {
+      return CDN_URL
+    }
+
+    //* Extract the base URL from the script's src attribute
+    return document.currentScript.src.split('/').slice(0, -1).join('/')
+  }
+
+  /**
+   * Downloads the index file for the specified IP version.
+   * @param baseUrl - The base URL for downloading
+   * @param version - The IP version (4 or 6)
+   * @returns A promise that resolves to the downloaded index
+   */
+  async function downloadIndex(baseUrl: string, version: 4 | 6) {
+    const result = await fetchArrayBuffer(
+      new URL(`indexes/${version}.idx`, baseUrl),
+    )
+    if (!result)
+      return // TODO add debug log
+
+    const { versionHeader, buffer } = result
+    if (versionHeader)
+      DATA_URL[version] = CDN_URL.replace(/\/$/, `@${versionHeader}`)
+    return (INDEXES[version] = new BigUint64Array(buffer))
+  }
 
   /**
    * Retrieves the end IP for a given record.

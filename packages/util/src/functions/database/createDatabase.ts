@@ -47,6 +47,9 @@ export async function createDatabase(files: string[], settings: IpLocationApiSet
   }
 }
 
+/**
+ * Represents the data for a location in the database.
+ */
 export interface LocationData {
   geoname_id: string
   locale_code: string
@@ -216,7 +219,7 @@ function deduplicateLocations(
       for (let j = i + 1; j < group.length; j++) {
         const compareLocation = primaryData[group[j]!]!
         if (areLocationsEqual(baseLocation, compareLocation, checkFields)) {
-          //* Merge duplicate locations
+          //* Merge duplicate locations by keeping the base location and removing the duplicate
           primaryData[group[j]!] = baseLocation
           group.splice(j, 1)
           j--
