@@ -250,8 +250,8 @@ export async function createBlockDatabase(
 
             if (settings.fields.includes('postcode')) {
               const [postcodeLength, postcodeValue] = getPostcodeDatabase(postalCode)
-              buffer3.writeUInt32LE(postcodeLength, offset)
-              buffer3.writeInt8(postcodeValue, offset + 4)
+              buffer3.writeUInt32LE(postcodeValue, offset)
+              buffer3.writeInt8(postcodeLength, offset + 4)
               offset += 5
             }
 
