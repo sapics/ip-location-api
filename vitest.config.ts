@@ -7,7 +7,7 @@ export default defineConfig({
         100: true,
       },
       reporter: ['json-summary', 'text', 'html'],
-      exclude: ['**/*.config.ts', ...coverageConfigDefaults.exclude],
+      exclude: ['**/*.config.ts', '**/dist/**', ...coverageConfigDefaults.exclude],
     },
   },
 })

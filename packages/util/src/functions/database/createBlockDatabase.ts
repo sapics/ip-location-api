@@ -13,6 +13,9 @@ import { getPostcodeDatabase } from '../getPostcodeDatabase.js'
 import { makeDatabase } from '../makeDatabase.js'
 import { createSmallMemoryFile } from './createSmallMemoryFile.js'
 
+/**
+ * Represents a row in the block database CSV file.
+ */
 interface BlockDatabaseRow {
   network: string
   geoname_id: string
@@ -57,12 +60,16 @@ export async function createBlockDatabase(
   }
 
   return new Promise<void>((resolve, reject) => {
+    //* Count the number of checks to ensure all streams are written before resolving
     let checkCount = 0
     function check() {
       if (++checkCount === 3)
         resolve()
     }
 
+    /**
+     * Represents the data from the previous row for comparison and optimization.
+     */
     let previousData: {
       countryCode?: string
       end: number | bigint
