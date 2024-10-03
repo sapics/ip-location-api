@@ -1,6 +1,6 @@
 {
   "name": "ip-location-api",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Fast location lookup from IP address",
   "keywords": [
     "location",
@@ -85,6 +85,8 @@
     "spec",
     "script/*.mjs",
     "script/*.cjs",
+    "types/src/main.d.mts",
+    "types/cjs/main.d.cts",
     "LICENSE",
     "EULA",
     "README.md"
