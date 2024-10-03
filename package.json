@@ -1,6 +1,6 @@
 {
   "name": "ip-location-api",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Fast location lookup from IP address",
   "keywords": [
     "location",
@@ -22,7 +22,8 @@
     "updatedb-browser-country": "node script/updatedb.mjs ILA_BROWSER_TYPE=country ILA_IP_LOCATION_DB=geo-whois-asn",
     "updatedb-browser-geocode": "node script/updatedb.mjs ILA_BROWSER_TYPE=geocode ILA_FIELDS=latitude,longitude",
     "browser": "npx http-server browser -p 8321",
-    "cjs": "node script/convert-to-cjs.mjs"
+    "cjs": "node script/convert-to-cjs.mjs",
+    "ts": "npx -p typescript tsc src/main.mjs cjs/main.cjs --declaration --allowJs --emitDeclarationOnly --skipLibCheck --outDir types"
   },
   "author": "sapics",
   "homepage": "https://github.com/sapics/ip-location-api",
@@ -36,12 +37,22 @@
     "node": ">=14.8.0"
   },
   "main": "cjs/main.cjs",
+  "types": "types/cjs/main.d.cts",
   "module": "src/main.mjs",
   "exports": {
     ".": {
-      "import": "./src/main.mjs",
-      "require": "./cjs/main.cjs",
-      "default": "./cjs/main.cjs"
+      "import": {
+        "default": "./src/main.mjs",
+        "types": "./types/src/main.d.mts"
+      },
+      "require": {
+        "default": "./cjs/main.cjs",
+        "types": "./types/cjs/main.d.cts"
+      },
+      "default": {
+        "default": "./cjs/main.cjs",
+        "types": "./types/cjs/main.d.cts"
+      }
     },
     "./country": {
       "import": "./browser/country/lookup.mjs",
@@ -99,6 +110,7 @@
     "globals": "^15.9.0",
     "http-server": "^14.1.1",
     "jasmine": "^5.2.0",
-    "rollup-plugin-ignore": "^1.0.10"
+    "rollup-plugin-ignore": "^1.0.10",
+    "tsc": "^2.0.4"
   }
 }

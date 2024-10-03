@@ -23,8 +23,10 @@ const __dirname = path.dirname(__filename)
 // Database lookup
 //---------------------------------------
 /**
+ * lookup ip address
+ * @type {function}
  * @param {string} ip - ipv4 or ipv6 formatted address
- * @returns {object|null|Promise} location information
+ * @return {object|null|Promise} location information
  */
 export const lookup = (ip) => {
 	// net.isIP(ip) is good for checking ip address format
@@ -83,12 +85,14 @@ export const lookup = (ip) => {
 /**
  * setup database without reload
  * @param {object} [_setting]
- * @returns {void}
+ * @return {void}
  */
 export const setupWithoutReload = setSetting
 
 /**
  * clear in-memory database
+ * @type {function}
+ * @return {void}
  */
 export const clear = () => {
 	v4db.startIps = v6db.startIps = v4db.endIps = v6db.endIps = v4db.mainBuffer = v6db.mainBuffer = null
@@ -99,10 +103,11 @@ var Region1NameJson, Region2NameJson, TimezoneJson, LocBuffer, CityNameBuffer, A
 var updateJob
 /**
  * reload in-memory database
- * @param {object} [_setting]
+ * @type {function}
+ * @param {object} [_setting] - if you need to update the database with different setting
  * @param {boolean} [sync] - sync mode
  * @param {boolean} [_runningUpdate] - if it's running update [internal use]
- * @returns {Promise<void>}
+ * @return {Promise|void}
  */
 export const reload = async (_setting, sync, _runningUpdate) => {
 	var curSetting = setting
@@ -246,6 +251,7 @@ const watchHash = {}
  * Watch database directory.
  * When database file is updated, it reload the database automatically
  * This causes error if you use ILA_SMALL_MEMORY=true
+ * @type {function}
  * @param {string} [name] - name of watch. If you want to watch multiple directories, you can set different name for each directory
  */
 export const watchDb = (name = 'ILA') => {
@@ -261,6 +267,7 @@ export const watchDb = (name = 'ILA') => {
 
 /**
  * Stop watching database directory
+ * @type {function}
  * @param {string} [name] 
  */
 export const stopWatchDb = (name = 'ILA') => {
@@ -272,10 +279,11 @@ export const stopWatchDb = (name = 'ILA') => {
 
 /**
  * Update database and auto reload database
+ * @type {function}
  * @param {object} [_setting] - if you need to update the database with different setting
  * @param {boolean} [noReload] - if you don't want to reload the database after update
  * @param {boolean} [sync] - if you want to update the database in sync mode
- * @returns {Promise<boolean>} - true if database is updated, false if no need to update
+ * @return {Promise<boolean>} - true if database is updated, false if no need to update
  */
 export const updateDb = (_setting, noReload, sync) => {
 	// By import { updateDb } from './db.js' is the better way for update.
