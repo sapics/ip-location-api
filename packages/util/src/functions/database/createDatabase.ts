@@ -29,19 +29,21 @@ export async function createDatabase(files: string[], settings: IpLocationApiSet
   }
 
   //* Optimize location file if necessary
-  const makeLocationFile = settings.dataType !== 'Country' && settings.locationFile
-  if (makeLocationFile) {
+  if (settings.locationFile) {
     minifyLocationData(locationData as Record<number, LocationData>[], settings)
   }
 
   //* Process block sources and create databases
-  const blockSources = files.filter(file => file.includes('Blocks'))
+  const blockSources = files.filter(file => file.includes('Blocks')).sort((a, b) => a.localeCompare(b))
   const locationIdList: number[] = []
+  const areaDatabase: Record<string, number> = {}
+
   for (const blockSource of blockSources) {
-    await createBlockDatabase(blockSource, locationData, locationIdList, settings)
+    await createBlockDatabase(blockSource, locationData, locationIdList, areaDatabase, settings)
   }
-  if (makeLocationFile) {
-    await createLocationDatabase(locationData, locationIdList, settings)
+
+  if (settings.locationFile) {
+    await createLocationDatabase(locationData, locationIdList, areaDatabase, settings)
   }
 }
 
@@ -101,7 +103,7 @@ function minifyLocationData(mapDatas: Record<number, LocationData>[], settings: 
     mergeNonEnglishNames(primaryData, secondaryData)
   }
 
-  const locIds = Object.keys(primaryData).map(Number)
+  const locIds = Object.keys(primaryData).map(key => Number.parseInt(key))
   locIds.sort((a, b) => a - b)
 
   const locFields = getLocationFields(settings)

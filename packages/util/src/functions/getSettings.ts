@@ -1,3 +1,4 @@
+import type { Buffer } from 'node:buffer'
 import { dirname, join, resolve as resolvePath } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -7,11 +8,18 @@ import { getFieldsSize } from './getFieldsSize.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-export interface LocalDatabase {
-  version: 4 | 6
+export interface LocalDatabase<Version extends 4 | 6 = 4 | 6> {
+  version: Version
   recordSize: number
   fileLineMax: number
   folderLineMax: number
+  loadedData?: {
+    startIps: Version extends 4 ? Uint32Array : BigUint64Array
+    endIps?: Version extends 4 ? Uint32Array : BigUint64Array
+    mainBuffer?: Buffer
+    lastLine: number
+    firstIp: Version extends 4 ? number : bigint
+  }
 }
 
 /**
@@ -60,6 +68,14 @@ export interface IpLocationApiInputSettings {
    * @default 4096
    */
   smallMemoryFileSize?: number
+  /**
+   * Whether to add country info in the result
+   * @default false
+   *
+   * @requires countries-list package (optional peer dependency)
+   * @link https://www.npmjs.com/package/countries-list
+   */
+  addCountryInfo?: boolean
 }
 
 export interface IpLocationApiSettings {
@@ -76,8 +92,9 @@ export interface IpLocationApiSettings {
   locationFile: boolean
   mainRecordSize: number
   locationRecordSize: number
-  v4: LocalDatabase
-  v6: LocalDatabase
+  v4: LocalDatabase<4>
+  v6: LocalDatabase<6>
+  addCountryInfo: boolean
 }
 
 /**
@@ -110,6 +127,9 @@ const FIELD_BIT_FLAG: Record<((typeof MAIN_FIELDS)[number] | (typeof LOCATION_FI
   city: 2048,
   eu: 4096,
 }
+
+// eslint-disable-next-line import/no-mutable-exports
+export let SAVED_SETTINGS: IpLocationApiSettings = DEFAULT_SETTINGS
 
 /**
  * Get the settings from various sources and merge them with default values
@@ -162,7 +182,7 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
   }
 
   //* Construct and return the final settings
-  return {
+  return SAVED_SETTINGS = {
     licenseKey: mergedSettings.licenseKey,
     dataDir,
     tmpDataDir,
@@ -178,6 +198,7 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
     locationRecordSize: getFieldsSize(fields.filter(field => (LOCATION_FIELDS as unknown as string[]).includes(field))),
     v4,
     v6,
+    addCountryInfo: mergedSettings.addCountryInfo,
   }
 }
 

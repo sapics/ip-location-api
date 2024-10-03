@@ -27,12 +27,14 @@ interface BlockDatabaseRow {
  * @param file - The CSV file containing IP block data.
  * @param locationData - An array of records containing location data.
  * @param locationIdList - A list of location IDs.
+ * @param areaDatabase - A database of area data.
  * @param settings - IP location API settings.
  */
 export async function createBlockDatabase(
   file: string,
   locationData: Record<number, LocationData | string>[],
   locationIdList: number[],
+  areaDatabase: Record<string, number>,
   settings: IpLocationApiSettings,
 ): Promise<void> {
   const version = file.endsWith('v4.csv') ? 4 : 6
@@ -54,8 +56,6 @@ export async function createBlockDatabase(
     }
   }
 
-  const areaDatabase: Record<string, number> = {}
-
   return new Promise<void>((resolve, reject) => {
     let checkCount = 0
     function check() {
@@ -66,9 +66,9 @@ export async function createBlockDatabase(
     let previousData: {
       countryCode?: string
       end: number | bigint
-      buffer1: Buffer
-      buffer2: Buffer
-      buffer3: Buffer
+      buffer1?: Buffer
+      buffer2?: Buffer
+      buffer3?: Buffer
       locationId?: number
       latitude?: number
       longitude?: number
@@ -101,10 +101,10 @@ export async function createBlockDatabase(
             )
           ) {
             if (version === 4) {
-              previousData.buffer2.writeUInt32LE(end as number)
+              previousData.buffer2?.writeUInt32LE(end as number)
             }
             else {
-              previousData.buffer2.writeBigUInt64LE(end as bigint)
+              previousData.buffer2?.writeBigUInt64LE(end as bigint)
             }
           }
           else {
@@ -125,7 +125,7 @@ export async function createBlockDatabase(
             if (previousData?.buffer1) {
               if (!writeStreamDat1.write(previousData.buffer1))
                 readStream.pause()
-              if (settings.smallMemory) {
+              if (settings.smallMemory && previousData.buffer2 && previousData.buffer3) {
                 writeStreamSmallMemory = createSmallMemoryFile(writeStreamSmallMemory!, version, lineCount++, previousData.buffer2, previousData.buffer3, settings)
               }
               else {
@@ -148,8 +148,8 @@ export async function createBlockDatabase(
         else {
           const locationDataMap = locationData[0] as Record<number, LocationData>
           const locationId = Number.parseInt(row.geoname_id)
-          const latitude = Math.round(Number.parseFloat(row.latitude) * 10000)
-          const longitude = Math.round(Number.parseFloat(row.longitude) * 10000)
+          const latitude = Math.round(Number.parseFloat(row.latitude || '0') * 10000)
+          const longitude = Math.round(Number.parseFloat(row.longitude || '0') * 10000)
           const accuracyRadius = row.accuracy_radius
           const postalCode = row.postal_code
 
@@ -169,22 +169,23 @@ export async function createBlockDatabase(
           //* Check if we can merge this entry with the previous one
           if (
             previousData
-            && ((locationId === previousData.locationId || counter > 0)
-              && (
-                counter === previousData.counter || !settings.locationFile
-              ))
-              && !hasChanged
-              && (
-                (version === 4 && (previousData.end as number) + 1 === start)
-                || (version === 6 && (previousData.end as bigint) + 1n === start)
-              )
+            && (
+              locationId === previousData.locationId
+              || (counter > 0 && counter === previousData.counter)
+              || !settings.locationFile
+            )
+            && !hasChanged
+            && (
+              (version === 4 && (previousData.end as number) + 1 === start)
+              || (version === 6 && (previousData.end as bigint) + 1n === start)
+            )
           ) {
             //* Merge by updating the end of the previous entry
             if (version === 4) {
-              previousData.buffer2.writeUInt32LE(end as number)
+              previousData.buffer2?.writeUInt32LE(end as number)
             }
             else {
-              previousData.buffer2.writeBigUInt64LE(end as bigint)
+              previousData.buffer2?.writeBigUInt64LE(end as bigint)
             }
           }
           else {
@@ -205,7 +206,7 @@ export async function createBlockDatabase(
             if (previousData?.buffer1) {
               if (!writeStreamDat1.write(previousData.buffer1))
                 readStream.pause()
-              if (settings.smallMemory) {
+              if (settings.smallMemory && previousData.buffer2 && previousData.buffer3) {
                 writeStreamSmallMemory = createSmallMemoryFile(writeStreamSmallMemory!, version, lineCount++, previousData.buffer2, previousData.buffer3, settings)
               }
               else {
@@ -233,7 +234,7 @@ export async function createBlockDatabase(
             let offset = 0
             //* Write location data to buffer3 based on settings
             if (settings.locationFile) {
-              buffer3.writeUInt32LE(counter, offset)
+              buffer3.writeUInt32LE(dataMap.counter, offset)
               offset += 4
             }
 
@@ -250,9 +251,8 @@ export async function createBlockDatabase(
             if (settings.fields.includes('postcode')) {
               const [postcodeLength, postcodeValue] = getPostcodeDatabase(postalCode)
               buffer3.writeUInt32LE(postcodeLength, offset)
-              offset += 4
-              buffer3.writeInt8(postcodeValue, offset)
-              offset += 1
+              buffer3.writeInt8(postcodeValue, offset + 4)
+              offset += 5
             }
 
             if (settings.fields.includes('area')) {
@@ -274,6 +274,10 @@ export async function createBlockDatabase(
             }
           }
         }
+        previousData = {
+          ...(previousData ?? {}),
+          end,
+        }
       })
       .on('pause', () => {
         writeStreamDat1.once('drain', () => readStream.resume())
@@ -283,8 +287,8 @@ export async function createBlockDatabase(
         }
       })
       .on('end', () => {
-        if (settings.smallMemory) {
-          writeStreamSmallMemory = createSmallMemoryFile(writeStreamSmallMemory!, version, lineCount++, previousData!.buffer2, previousData!.buffer3, settings)
+        if (settings.smallMemory && previousData?.buffer2 && previousData?.buffer3) {
+          writeStreamSmallMemory = createSmallMemoryFile(writeStreamSmallMemory!, version, lineCount++, previousData.buffer2, previousData.buffer3, settings)
           writeStreamSmallMemory?.end(check)
           ++checkCount
         }

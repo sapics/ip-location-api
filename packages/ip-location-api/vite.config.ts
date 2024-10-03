@@ -9,22 +9,25 @@ export default defineConfig({
       entry: {
         index: 'src/index.ts',
       },
-      formats: ['es', 'cjs', 'iife'],
+      formats: ['es', 'cjs'],
       fileName: (format, entryName) => {
         switch (format) {
           case 'es':
             return `${entryName}.mjs`
           case 'cjs':
             return `${entryName}.cjs`
-          case 'iife':
-            return `${entryName}.min.js`
           default:
             return `${entryName}.js`
         }
       },
       name: 'IpLookup',
     },
+    rollupOptions: {
+      external: ['@fast-csv/parse', 'ip-address', 'ky', 'yauzl', 'countries-list'],
+    },
     sourcemap: true,
+    ssr: true,
+    // minify: 'esbuild',
   },
   plugins: [
     checker({

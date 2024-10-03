@@ -9,7 +9,7 @@ import { getUnderscoreFill } from './getUnderscoreFill.js'
  * @param isTmp - Whether the file is temporary.
  * @returns An array containing the directory, file number, and line offset.
  */
-export function getSmallMemoryFile(line: number, db: LocalDatabase, isTmp: boolean): [string, string, number] {
+export function getSmallMemoryFile(line: number, db: LocalDatabase, isTmp = false): [string, string, number] {
   const dbNumber = line / db.folderLineMax | 0
   const fileNumber = (line - dbNumber * db.folderLineMax) / db.fileLineMax | 0
   const lineOffset = line - dbNumber * db.folderLineMax - fileNumber * db.fileLineMax
