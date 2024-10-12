@@ -17,7 +17,7 @@ export async function update(inputSettings?: Partial<IpLocationApiInputSettings>
   const settings = getSettings(inputSettings)
   await ensureDirectoriesExist(settings)
   const { files, sha256 } = await downloadAndExtractDatabase(settings)
-  if (!files)
+  if (!files || files.length === 0)
     return
 
   // TODO: Add debug log
