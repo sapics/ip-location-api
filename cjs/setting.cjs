@@ -75,7 +75,9 @@ const getSettingCmd = () => {
 	const ret = []
 	for(const key in defaultSetting){
 		if(setting[key] && setting[key] !== defaultSetting[key]){
-			ret.push(make_key(key) + '=' + String(setting[key]))
+			var value = String(setting[key])
+			if(value.includes(' ')) value = '"' + value + '"'
+			ret.push(make_key(key) + '=' + value)
 		}
 	}
 	return ret.join(' ')

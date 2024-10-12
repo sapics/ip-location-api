@@ -289,7 +289,9 @@ export const updateDb = (_setting, noReload, sync) => {
 	// By import { updateDb } from './db.js' is the better way for update.
 	// However, db.js import many external modules, it makes slow down the startup time and uses more memory.
 	// Therefore, we use exec() to run the script in the other process.
-	var cmd = 'node ' + path.resolve(__dirname, '..', 'script', 'updatedb.mjs')
+	var scriptPath = path.resolve(__dirname, '..', 'script', 'updatedb.mjs')
+	if(scriptPath.includes(' ')) scriptPath = '"' + scriptPath + '"'
+	var cmd = 'node ' + scriptPath
 	var arg, runningUpdate = false
 	if(_setting){
 		var oldSetting = Object.assign({}, setting)
