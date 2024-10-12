@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --workspace-concurrency=1 build",
     "build:watch": "concurrently \"npm:build:watch:*\" --kill-others",
     "build:watch:country": "cd packages/country && pnpm build:watch",
     "build:watch:country-extra": "cd packages/country-extra && pnpm build:watch",

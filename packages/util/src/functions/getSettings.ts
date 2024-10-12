@@ -269,7 +269,7 @@ const WINDOWS_DRIVE_REG = /^[a-z]:\\/i
  * @param directory The input directory path
  * @returns Resolved absolute directory path
  */
-function processDirectory(directory: string): string {
+export function processDirectory(directory: string): string {
   //* If the path is not absolute, resolve it relative to __dirname
   if (!directory.startsWith('/') && !directory.startsWith('\\\\') && !WINDOWS_DRIVE_REG.test(directory)) {
     directory = resolvePath(__dirname, directory)

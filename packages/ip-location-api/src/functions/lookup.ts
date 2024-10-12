@@ -1,4 +1,3 @@
-import type { ICountry } from 'countries-list'
 import { Buffer } from 'node:buffer'
 import { open } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -151,6 +150,7 @@ export async function lookup(ip: string): Promise<GeoData | null> {
     return null
   const list = db.loadedData.startIps
   const line = binarySearch(list, ipNumber)
+  /* c8 ignore next 2 */ //* Line should never be null
   if (line === null)
     return null
 
@@ -227,31 +227,32 @@ function setCityInfo(buffer: Buffer, offset: number, settings: IpLocationApiSett
 
   //* Read and decode postcode if included in fields
   if (settings.fields.includes('postcode')) {
-    const postcodeLength = buffer.readUInt32LE(offset)
-    const postcodeValue = buffer.readInt8(offset + 4)
-    if (postcodeLength) {
+    const postcodeValue = buffer.readUInt32LE(offset)
+    const postcodeLength = buffer.readInt8(offset + 4)
+    if (postcodeValue) {
       let postcode: string
-      if (postcodeValue < -9) {
-        const code = (-postcodeValue).toString()
-        postcode = postcodeLength.toString(36)
+      if (postcodeLength < -9) {
+        const code = (-postcodeLength).toString()
+        postcode = postcodeValue.toString(36)
         postcode = `${getZeroFill(
           postcode.slice(0, -Number.parseInt(code[1]!)),
           Number.parseInt(code[0]!) - 0,
         )}-${getZeroFill(postcode.slice(-Number.parseInt(code[1]!)), Number.parseInt(code[1]!) - 0)}`
       }
-      else if (postcodeValue < 0) {
-        postcode = getZeroFill(postcodeLength.toString(36), -postcodeValue)
+      else if (postcodeLength < 0) {
+        postcode = getZeroFill(postcodeValue.toString(36), -postcodeLength)
       }
-      else if (postcodeValue < 10) {
-        postcode = getZeroFill(postcodeLength.toString(10), postcodeValue)
+      else if (postcodeLength < 10) {
+        postcode = getZeroFill(postcodeValue.toString(10), postcodeLength)
       }
-      else if (postcodeValue < 72) {
-        const code = String(postcodeValue)
-        postcode = getZeroFill(postcodeLength.toString(10), (Number.parseInt(code[0]!) - 0) + (Number.parseInt(code[1]!) - 0))
+      else if (postcodeLength < 72) {
+        const code = String(postcodeLength)
+        postcode = getZeroFill(postcodeValue.toString(10), (Number.parseInt(code[0]!) - 0) + (Number.parseInt(code[1]!) - 0))
         postcode = `${postcode.slice(0, Number.parseInt(code[0]!) - 0)}-${postcode.slice(Number.parseInt(code[0]!) - 0)}`
+        /* c8 ignore next 4 */ //* Should never happen
       }
       else {
-        postcode = postcodeValue.toString(36).slice(1) + postcodeLength.toString(36)
+        postcode = postcodeLength.toString(36).slice(1) + postcodeValue.toString(36)
       }
       geodata.postcode = postcode.toUpperCase()
     }
@@ -360,17 +361,18 @@ async function setCountryInfo(geodata: GeoData, settings: IpLocationApiSettings)
     //* Import the countries-list package (optional peer dependency)
     try {
       const { countries, continents } = await import('countries-list')
-      const country = countries[geodata.country as keyof typeof countries] as ICountry | undefined
+      const country = countries[geodata.country as keyof typeof countries]
 
       //* Enhance geodata with additional country information
-      geodata.country_name = country?.name
-      geodata.country_native = country?.native
-      geodata.continent = country?.continent
-      geodata.continent_name = country?.continent ? continents[country.continent] : undefined
-      geodata.capital = country?.capital
-      geodata.phone = country?.phone
-      geodata.currency = country?.currency
-      geodata.languages = country?.languages
+      geodata.country_name = country.name
+      geodata.country_native = country.native
+      geodata.continent = country.continent
+      geodata.continent_name = continents[country.continent]
+      geodata.capital = country.capital
+      geodata.phone = country.phone
+      geodata.currency = country.currency
+      geodata.languages = country.languages
+      /* c8 ignore next 5 */ //* We don't check the try-catch as it's an optional peer dependency
     }
     catch (error) {
       // TODO add correct debug message
