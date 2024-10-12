@@ -7,6 +7,7 @@ describe('aton4', () => {
     expect(aton4('10.0.0.1')).toBe(167772161)
     expect(aton4('172.16.0.1')).toBe(2886729729)
     expect(aton4('255.255.255.255')).toBe(4294967295)
+    expect(aton4('207.97.227.239')).toBe(3479299055)
     expect(aton4('0.0.0.0')).toBe(0)
   })
 

@@ -5,6 +5,7 @@ export default defineConfig({
     coverage: {
       reporter: ['json-summary', 'text', 'html'],
       exclude: ['**/*.config.ts', '**/dist/**', ...coverageConfigDefaults.exclude],
+      reportOnFailure: true,
     },
   },
 })

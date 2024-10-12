@@ -48,7 +48,7 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
 
     //* Get the data file for the line
     const dataResponse = await fetchArrayBuffer(
-      new URL(`/indexes/${version}/${numberToDir(lineIndex)}`, DATA_URL[version]),
+      new URL(`${DATA_URL[version]}/indexes/${version}/${numberToDir(lineIndex)}`),
     )
     if (!dataResponse) {
       // TODO Add debug log
@@ -113,7 +113,7 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
    */
   async function downloadIndex(baseUrl: string, version: 4 | 6) {
     const result = await fetchArrayBuffer(
-      new URL(`indexes/${version}.idx`, baseUrl),
+      new URL(`${baseUrl}/indexes/${version}.idx`),
     )
     if (!result)
       return // TODO add debug log
