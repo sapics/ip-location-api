@@ -1,0 +1,20 @@
+{
+  "references": [
+    {
+      "path": "./packages/ip-location-api/tsconfig.json"
+    },
+    {
+      "path": "./packages/country/tsconfig.json"
+    },
+    {
+      "path": "./packages/country-extra/tsconfig.json"
+    },
+    {
+      "path": "./packages/geocode/tsconfig.json"
+    },
+    {
+      "path": "./packages/geocode-extra/tsconfig.json"
+    }
+  ],
+  "files": []
+}
