@@ -43,6 +43,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@iplookup/util": "workspace:*"
+    "@iplookup/util": "workspace:*",
+    "countries-list": "^3.1.1"
   }
 }

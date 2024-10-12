@@ -65,6 +65,9 @@ importers:
       '@iplookup/util':
         specifier: workspace:*
         version: link:../util
+      countries-list:
+        specifier: ^3.1.1
+        version: 3.1.1
 
   packages/geocode:
     devDependencies:
@@ -77,6 +80,9 @@ importers:
       '@iplookup/util':
         specifier: workspace:*
         version: link:../util
+      countries-list:
+        specifier: ^3.1.1
+        version: 3.1.1
 
   packages/ip-location-api:
     dependencies:

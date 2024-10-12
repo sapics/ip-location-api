@@ -31,7 +31,7 @@ interface GeoData {
   area?: number
   /**
    * The country of the IP address
-   * @example 'US'
+   * @example 'NL'
    * @see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
    */
   country?: string
@@ -365,7 +365,8 @@ async function setCountryInfo(geodata: GeoData, settings: IpLocationApiSettings)
       //* Enhance geodata with additional country information
       geodata.country_name = country?.name
       geodata.country_native = country?.native
-      geodata.continent = country?.continent ? continents[country.continent] : undefined
+      geodata.continent = country?.continent
+      geodata.continent_name = country?.continent ? continents[country.continent] : undefined
       geodata.capital = country?.capital
       geodata.phone = country?.phone
       geodata.currency = country?.currency
