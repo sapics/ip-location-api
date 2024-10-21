@@ -1,6 +1,6 @@
 {
   "name": "@iplookup/country",
-  "version": "1.0.20241020",
+  "version": "1.0.20241021",
   "description": "Browser api to lookup country from IP address",
   "keywords": [
     "location",
