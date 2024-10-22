@@ -284,7 +284,6 @@ const updateDb = (_setting, noReload, sync) => {
 
 
 
-	var cmd = 'node ' + path.resolve(__dirname, '..', 'script', 'updatedb.mjs')
 	var arg, runningUpdate = false
 	if(_setting){
 		var oldSetting = Object.assign({}, setting)
@@ -294,6 +293,10 @@ const updateDb = (_setting, noReload, sync) => {
 	} else {
 		arg = getSettingCmd()
 	}
+
+	var scriptPath = path.resolve(_setting ? _setting.apiDir : setting.apiDir, 'script', 'updatedb.mjs')
+	if(scriptPath.includes(' ')) scriptPath = '"' + scriptPath + '"'
+	var cmd = 'node ' + scriptPath
 	if(!_setting){
 		arg += ' ' + 'ILA_SAME_DB_SETTING=true'
 	}

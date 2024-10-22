@@ -129,6 +129,7 @@ Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is 
 | addCountryInfo | ILA_ADD_COUNTRY_INFO | false | "true" make to add the country information from [Countries](https://github.com/annexare/Countries). This needs "country" field. |
 | dataDir | ILA_DATA_DIR | ../data | Directory for database file |
 | tmpDataDir | ILA_TMP_DATA_DIR | ../tmp | Directory for temporary file |
+| apiDir | ILA_API_DIR | .. | Directory for ip-location-api |
 | smallMemory | ILA_SMALL_MEMORY | false | false: synchronouns, ture: asynchronouns |
 | smallMemoryFileSize | ILA_SMALL_MEMORY_FILE_SIZE | 4096 | Max file size for asynchronouns data (no change is recommended) |
 | licenseKey | ILA_LICENSE_KEY | redist | By setting [MaxMind](https://www.maxmind.com/) License key, you can download latest version of database from [MaxMind](https://www.maxmind.com/) server. By setting to "redist", you can download the database from [node-geolite2-redist](https://github.com/sapics/node-geolite2-redist) repository which re-distribute the GeoLite2 database. |

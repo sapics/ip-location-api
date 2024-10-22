@@ -9,6 +9,7 @@ const defaultSetting = {
 	fields: ['country'],
 	dataDir: '../data/',
 	tmpDataDir: '../tmp/',
+	apiDir: '..',
 
 	smallMemory: false,
 	smallMemoryFileSize: 4096,
@@ -120,6 +121,9 @@ const setSetting = (_setting = {}) => {
 	}
 	if(!setting.tmpDataDir.startsWith('/') && !setting.tmpDataDir.startsWith('\\\\') && !windowsDriveReg.test(setting.tmpDataDir)){
 		setting.tmpDataDir = path.resolve(__dirname, setting.tmpDataDir)
+	}
+	if(!setting.apiDir.startsWith('/') && !setting.apiDir.startsWith('\\\\') && !windowsDriveReg.test(setting.apiDir)){
+		setting.apiDir = path.resolve(__dirname, setting.apiDir)
 	}
 
 	if(typeof setting.fields === 'string'){
