@@ -3,7 +3,6 @@ import fs from 'fs/promises'
 import fsSync from 'fs'
 import path from 'path'
 import { exec, execSync } from 'child_process'
-import { fileURLToPath } from "url"
 
 import { countries, continents } from 'countries-list'
 import { CronJob } from 'cron'
@@ -15,9 +14,6 @@ const v4db = setting.v4
 const v6db = setting.v6
 const locFieldHash = setting.locFieldHash
 const mainFieldHash = setting.mainFieldHash
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 //---------------------------------------
 // Database lookup
@@ -141,7 +137,7 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 	if(sync){
 		if(!fsSync.existsSync(testDir)){
 			consoleLog('Database creating ...')
-			updateDb(curSetting, true, true)
+			updateDb(_setting && curSetting, true, true)
 			consoleLog('Database created')
 		}
 		buffer41 = fsSync.readFileSync(dataFiles.v41)
@@ -164,7 +160,7 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 	} else {
 		if(!fsSync.existsSync(testDir)){
 			consoleLog('Database creating ...')
-			await updateDb(curSetting, true)
+			await updateDb(_setting && curSetting, true)
 			consoleLog('Database created')
 		}
 		var prs = [
@@ -303,7 +299,7 @@ export const updateDb = (_setting, noReload, sync) => {
 	if(scriptPath.includes(' ')) scriptPath = '"' + scriptPath + '"'
 	var cmd = 'node ' + scriptPath
 	if(!_setting){
-		arg += ' ' + 'ILA_SAME_DB_SETTING=true'
+		arg += ' ILA_SAME_DB_SETTING=true'
 	}
 	if(_setting && _setting.smallmemory || !_setting && setting.smallMemory){
 		runningUpdate = true

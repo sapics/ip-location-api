@@ -3,7 +3,6 @@ const fs = require('fs/promises')
 const fsSync = require('fs')
 const path = require('path')
 const { exec, execSync } = require('child_process')
-const { fileURLToPath } = require("url")
 
 const { countries, continents } = require('countries-list')
 const { CronJob } = require('cron')
@@ -137,7 +136,7 @@ const reload = async (_setting, sync, _runningUpdate) => {
 	if(sync){
 		if(!fsSync.existsSync(testDir)){
 			consoleLog('Database creating ...')
-			updateDb(curSetting, true, true)
+			updateDb(_setting && curSetting, true, true)
 			consoleLog('Database created')
 		}
 		buffer41 = fsSync.readFileSync(dataFiles.v41)
@@ -160,7 +159,7 @@ const reload = async (_setting, sync, _runningUpdate) => {
 	} else {
 		if(!fsSync.existsSync(testDir)){
 			consoleLog('Database creating ...')
-			await updateDb(curSetting, true)
+			await updateDb(_setting && curSetting, true)
 			consoleLog('Database created')
 		}
 		var prs = [
@@ -298,7 +297,7 @@ const updateDb = (_setting, noReload, sync) => {
 	if(scriptPath.includes(' ')) scriptPath = '"' + scriptPath + '"'
 	var cmd = 'node ' + scriptPath
 	if(!_setting){
-		arg += ' ' + 'ILA_SAME_DB_SETTING=true'
+		arg += ' ILA_SAME_DB_SETTING=true'
 	}
 	if(_setting && _setting.smallmemory || !_setting && setting.smallMemory){
 		runningUpdate = true
