@@ -179,6 +179,7 @@ After v2.0, the database is created automatically at initial startup, and update
 When you need only geographic coordinates, please set "ILA_FIELDS=latitude,longitude".
 You need to create a database for each configuration.
 After v2.0.0, the database is created at initial running (which takes some seconds), and auto update with `ILA_AUTO_UPDATE` which update twice weekly with default setting.
+
 The database is created by following CLI
 
 ```bash
@@ -228,6 +229,24 @@ If you need all the data in above field table, setting "ILA_FIELDS=all" and "ILA
 | longitude,latitude | 46.5 MB  | 10 ms  | 0.428 μs/ip | 0.776 μs/ip |
 | all                | 76.4 MB  | 18 ms  | 1.054 μs/ip | 1.348 μs/ip |
 
+
+## For module bundler (webpack, vite, next.js, etc)
+
+Some module bundlers cannot work with original database system.
+If module bundlers could not work with `ip-location-api`, please try to import module as following.
+It works almost same as original module.
+
+```js
+import { lookup } from 'ip-location-api/pack'
+```
+
+
+It would be better to set directories for database files which have write permission.
+
+```bash
+ILA_DATA_DIR=/your_database_directory
+ILA_TMP_DATA_DIR=/your_tmporary_directory_for_database
+```
 
 
 ## Node.js version
