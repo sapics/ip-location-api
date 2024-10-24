@@ -1,6 +1,6 @@
 {
   "name": "ip-location-api",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Fast location lookup from IP address",
   "keywords": [
     "location",
@@ -52,6 +52,16 @@
       "default": {
         "types": "./types/cjs/main.d.cts",
         "default": "./cjs/main.cjs"
+      }
+    },
+    "./pack": {
+      "import": {
+        "types": "./types/src/main.d.mts",
+        "default": "./src/main-pack.mjs"
+      },
+      "default": {
+        "types": "./types/src/main.d.mts",
+        "default": "./src/main-pack.mjs"
       }
     },
     "./country": {
