@@ -144,7 +144,7 @@ const numberToDir = (num) => {
 const getSmallMemoryFile = (line, db, isTmp) => {
 	const dbNumber = line / db.folderLineMax | 0
 	const fileNumber = (line - dbNumber * db.folderLineMax) / db.fileLineMax | 0
-	const lineOffset = line - dbNumber * db.folderLineMax - fileNumber * db.fileLineMax;
+	const lineOffset = line - dbNumber * db.folderLineMax - fileNumber * db.fileLineMax
 	var dir = path.join(db.name + (isTmp ? '-tmp' : ''), getUnderberFill(dbNumber.toString(36), 2))
 	return [dir, getUnderberFill(fileNumber.toString(36), 2), lineOffset * db.recordSize]
 }

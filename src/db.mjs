@@ -3,7 +3,7 @@ import fsSync from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createHash } from 'crypto'
-import { pipeline } from 'stream/promises';
+import { pipeline } from 'stream/promises'
 
 import axios from 'axios'
 import { parse } from '@fast-csv/parse'
@@ -54,9 +54,9 @@ export const update = async () => {
 	if(!srcList){
 		return console.log('ERROR TO UPDATE')
 	}
-	consoleLog(srcList);
+	consoleLog(srcList)
 	if(srcList === 'NO NEED TO UPDATE') {
-		return;
+		return
 	}
 
 	consoleLog('Creating database for ip-location-api')
@@ -526,7 +526,7 @@ const createMainData = async (file, mapDatas) => {
 					// var countryCode = null
 					var locLocation = mapData0[locId] && mapData0[locId].counter
 
-					var isSame = true;
+					var isSame = true
 					if(setting.mainFieldHash.latitude && preLatitude !== latitude) isSame = false
 					if(setting.mainFieldHash.longitude && preLongitude !== longitude) isSame = false
 					if(setting.mainFieldHash.area && preArea !== area) isSame = false

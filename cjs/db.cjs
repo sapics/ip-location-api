@@ -4,7 +4,7 @@ const fsSync = require('fs')
 const path = require('path')
 const { fileURLToPath } = require('url')
 const { createHash } = require('crypto')
-const { pipeline } = require('stream/promises';)
+const { pipeline } = require('stream/promises')
 
 const axios = require('axios')
 const { parse } = require('@fast-csv/parse')
@@ -52,9 +52,9 @@ const update = async () => {
 	if(!srcList){
 		return console.log('ERROR TO UPDATE')
 	}
-	consoleLog(srcList);
+	consoleLog(srcList)
 	if(srcList === 'NO NEED TO UPDATE') {
-		return;
+		return
 	}
 
 	consoleLog('Creating database for ip-location-api')
@@ -521,7 +521,7 @@ const createMainData = async (file, mapDatas) => {
 
 					var locLocation = mapData0[locId] && mapData0[locId].counter
 
-					var isSame = true;
+					var isSame = true
 					if(setting.mainFieldHash.latitude && preLatitude !== latitude) isSame = false
 					if(setting.mainFieldHash.longitude && preLongitude !== longitude) isSame = false
 					if(setting.mainFieldHash.area && preArea !== area) isSame = false
