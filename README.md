@@ -242,6 +242,7 @@ import { lookup } from 'ip-location-api/pack'
 
 
 It would be better to set directories for database files which have write permission.
+Without write permission directories, you cannot use this module.
 
 ```bash
 ILA_DATA_DIR=/your_database_directory
