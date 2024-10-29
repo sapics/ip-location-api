@@ -1,10 +1,36 @@
+import type { ICountry, TContinentCode, TContinents, TCountryCode } from "countries-list";
+
+export type LookupResult = {
+	latitude?: number;
+	longitude?: number;
+	postcode?: string;
+	area?: string;
+	country?: TCountryCode;
+	eu?: boolean;
+	region1?: string;
+	region1_name?: string;
+	region2?: string;
+	region2_name?: string;
+	metro?: number;
+	timezone?: string;
+	city?: string;
+
+	country_name: ICountry["name"];
+	country_native: ICountry["native"];
+	continent: ICountry["continent"];
+	continent_name: TContinents[TContinentCode];
+	capital: ICountry["capital"];
+	phone: ICountry["phone"];
+	currency: ICountry["currency"];
+	languages: ICountry["languages"];
+};
+
 /**
- * lookup ip address
- * @type {function}
+ * lookup ip address [Sync / Async]
  * @param {string} ip - ipv4 or ipv6 formatted address
- * @return {object|null|Promise} location information
+ * @return location information as either object or promise (based on settings), or null if not found.
  */
-export const lookup: Function;
+export const lookup: (ip: string) => LookupResult | Promise<LookupResult | null> | null;
 /**
  * setup database without reload
  * @param {object} [_setting]
