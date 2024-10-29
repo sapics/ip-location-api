@@ -4,7 +4,7 @@ import fsSync from 'fs'
 import path from 'path'
 import { exec, execSync } from 'child_process'
 
-import { countries, continents } from 'countries-list'
+import { countries, continents, TContinents, ICountry, TContinentCode } from 'countries-list'
 import { CronJob } from 'cron'
 
 import { setting, setSetting, getSettingCmd, consoleLog, consoleWarn } from './setting.mjs'
@@ -15,14 +15,40 @@ const v6db = setting.v6
 const locFieldHash = setting.locFieldHash
 const mainFieldHash = setting.mainFieldHash
 
+// JavaScript type definition
+/**
+ * @typedef {Object} LookupResult
+ * @property {number} [latitude]
+ * @property {number} [longitude]
+ * @property {string} [postcode]
+ * @property {string} [area]
+ * @property {TCountryCode} [country]
+ * @property {boolean} [eu]
+ * @property {string} [region1]
+ * @property {string} [region1_name]
+ * @property {string} [region2]
+ * @property {string} [region2_name]
+ * @property {number} [metro]
+ * @property {string} [timezone]
+ * @property {string} [city]
+ * @property {ICountry["name"]} country_name
+ * @property {ICountry["native"]} country_native
+ * @property {ICountry["continent"]} continent
+ * @property {TContinents[TContinentCode]} continent_name
+ * @property {ICountry["capital"]} capital
+ * @property {ICountry["phone"]} phone
+ * @property {ICountry["currency"]} currency
+ * @property {ICountry["languages"]} languages
+ */
+
+
 //---------------------------------------
 // Database lookup
 //---------------------------------------
 /**
  * lookup ip address
- * @type {function}
  * @param {string} ip - ipv4 or ipv6 formatted address
- * @return {object|null|Promise} location information
+ * @return {LookupResult | Promise<LookupResult | null> | null} location information
  */
 export const lookup = (ip) => {
 	// net.isIP(ip) is good for checking ip address format
@@ -393,6 +419,15 @@ const lineToFile = async (line, db) => {
 	return buffer
 }
 
+
+
+/**
+ * Set city record
+ * @param {any} buffer
+ * @param {LookupResult} geodata
+ * @param {number} offset
+ * @return {LookupResult}
+ */
 const setCityRecord = (buffer, geodata, offset) => {
 	var locId
 	if(setting.locFile){
@@ -485,6 +520,12 @@ const setCityRecord = (buffer, geodata, offset) => {
 	}
 	return setCountryInfo(geodata)
 }
+
+/**
+ * Set country information
+ * @param {LookupResult} geodata
+ * @return {LookupResult}
+ */
 const setCountryInfo = (geodata) => {
 	if(setting.addCountryInfo){
 		var h = countries[geodata.country]
