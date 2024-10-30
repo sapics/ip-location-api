@@ -4,7 +4,7 @@ import fsSync from 'fs'
 import path from 'path'
 import { exec, execSync } from 'child_process'
 
-import { countries, continents, TContinents, ICountry, TContinentCode } from 'countries-list'
+import { countries, continents } from 'countries-list'
 import { CronJob } from 'cron'
 
 import { setting, setSetting, getSettingCmd, consoleLog, consoleWarn } from './setting.mjs'
@@ -22,7 +22,7 @@ const mainFieldHash = setting.mainFieldHash
  * @property {number} [longitude]
  * @property {string} [postcode]
  * @property {string} [area]
- * @property {TCountryCode} [country]
+ * @property {string} [country]
  * @property {boolean} [eu]
  * @property {string} [region1]
  * @property {string} [region1_name]
@@ -31,14 +31,14 @@ const mainFieldHash = setting.mainFieldHash
  * @property {number} [metro]
  * @property {string} [timezone]
  * @property {string} [city]
- * @property {ICountry["name"]} country_name
- * @property {ICountry["native"]} country_native
- * @property {ICountry["continent"]} continent
- * @property {TContinents[TContinentCode]} continent_name
- * @property {ICountry["capital"]} capital
- * @property {ICountry["phone"]} phone
- * @property {ICountry["currency"]} currency
- * @property {ICountry["languages"]} languages
+ * @property {string} country_name
+ * @property {string} country_native
+ * @property {string} continent
+ * @property {string} continent_name
+ * @property {string} capital
+ * @property {number[]} phone
+ * @property {string[]} currency
+ * @property {string[]} languages
  */
 
 
