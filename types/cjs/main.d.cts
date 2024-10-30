@@ -1,5 +1,12 @@
 import type { ICountry, TContinentCode, TContinents, TCountryCode } from "countries-list";
 
+/**
+* Basic lookup result object.
+*
+* All fields are made optional here, as available fields might differ based your settings.
+*
+* Requires runtime null-checks.
+*/
 export type LookupResult = {
 	latitude?: number;
 	longitude?: number;
@@ -15,14 +22,14 @@ export type LookupResult = {
 	timezone?: string;
 	city?: string;
 
-	country_name: ICountry["name"];
-	country_native: ICountry["native"];
-	continent: ICountry["continent"];
-	continent_name: TContinents[TContinentCode];
-	capital: ICountry["capital"];
-	phone: ICountry["phone"];
-	currency: ICountry["currency"];
-	languages: ICountry["languages"];
+	country_name?: ICountry["name"];
+	country_native?: ICountry["native"];
+	continent?: ICountry["continent"];
+	continent_name?: TContinents[TContinentCode];
+	capital?: ICountry["capital"];
+	phone?: ICountry["phone"];
+	currency?: ICountry["currency"];
+	languages?: ICountry["languages"];
 };
 
 /**
