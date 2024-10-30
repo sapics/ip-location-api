@@ -16,14 +16,40 @@ const v6db = setting.v6
 const locFieldHash = setting.locFieldHash
 const mainFieldHash = setting.mainFieldHash
 
+// JavaScript type definition
+/**
+ * @typedef {Object} LookupResult
+ * @property {number} [latitude]
+ * @property {number} [longitude]
+ * @property {string} [postcode]
+ * @property {string} [area]
+ * @property {string} [country]
+ * @property {boolean} [eu]
+ * @property {string} [region1]
+ * @property {string} [region1_name]
+ * @property {string} [region2]
+ * @property {string} [region2_name]
+ * @property {number} [metro]
+ * @property {string} [timezone]
+ * @property {string} [city]
+ * @property {string} country_name
+ * @property {string} country_native
+ * @property {string} continent
+ * @property {string} continent_name
+ * @property {string} capital
+ * @property {number[]} phone
+ * @property {string[]} currency
+ * @property {string[]} languages
+ */
+
+
 //---------------------------------------
 // Database lookup
 //---------------------------------------
 /**
  * lookup ip address
- * @type {function}
  * @param {string} ip - ipv4 or ipv6 formatted address
- * @return {object|null|Promise} location information
+ * @return {LookupResult | Promise<LookupResult | null> | null} location information
  */
 export const lookup = (ip) => {
 	// net.isIP(ip) is good for checking ip address format
@@ -409,6 +435,15 @@ const lineToFile = async (line, db) => {
 	return buffer
 }
 
+
+
+/**
+ * Set city record
+ * @param {any} buffer
+ * @param {LookupResult} geodata
+ * @param {number} offset
+ * @return {LookupResult}
+ */
 const setCityRecord = (buffer, geodata, offset) => {
 	var locId
 	if(setting.locFile){
@@ -501,6 +536,12 @@ const setCityRecord = (buffer, geodata, offset) => {
 	}
 	return setCountryInfo(geodata)
 }
+
+/**
+ * Set country information
+ * @param {LookupResult} geodata
+ * @return {LookupResult}
+ */
 const setCountryInfo = (geodata) => {
 	if(setting.addCountryInfo){
 		var h = countries[geodata.country]
