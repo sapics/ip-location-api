@@ -1,6 +1,6 @@
 {
   "name": "@iplookup/geocode",
-  "version": "1.0.20241102",
+  "version": "1.0.20241103",
   "description": "Browser api to lookup geocode from IP address",
   "keywords": [
     "location",
