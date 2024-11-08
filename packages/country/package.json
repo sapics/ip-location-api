@@ -1,7 +1,7 @@
 {
   "name": "@iplookup/country",
   "type": "module",
-  "version": "1.0.20240927",
+  "version": "2.0.0",
   "description": "Browser api to lookup country from IP address",
   "author": "sapics",
   "license": "CC BY 4.0 and MIT",
