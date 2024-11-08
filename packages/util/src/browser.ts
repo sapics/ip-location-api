@@ -13,7 +13,7 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
   const CDN_URL = __CDN_URL__
   const MAIN_RECORD_SIZE = __DATA_TYPE__ === 'country' ? 2 : 8
   const INDEXES: {
-    4?: BigUint64Array
+    4?: Uint32Array
     6?: BigUint64Array
   } = {}
   const DATA_URL = {
@@ -120,7 +120,9 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
 
     const { versionHeader, buffer } = result
     if (versionHeader)
-      DATA_URL[version] = CDN_URL.replace(/\/$/, `@${versionHeader}`)
+      DATA_URL[version] = `${CDN_URL}@${versionHeader}`
+    if (version === 4)
+      return (INDEXES[version] = new Uint32Array(buffer))
     return (INDEXES[version] = new BigUint64Array(buffer))
   }
 

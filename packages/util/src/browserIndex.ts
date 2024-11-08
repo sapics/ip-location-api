@@ -45,8 +45,8 @@ async function processIpVersion(
   const dbInfo = await readFile(join(settings.fieldDir, `${ipVersion}-3.dat`))
 
   //* Create typed arrays for efficient data processing
-  const startList = ipVersion === '4' ? new Uint32Array(startBuf.buffer, 0, startBuf.byteLength >> 2) : new BigUint64Array(startBuf.buffer, 0, startBuf.byteLength >> 3)
-  const endList = ipVersion === '4' ? new Uint32Array(endBuf.buffer, 0, endBuf.byteLength >> 2) : new BigUint64Array(endBuf.buffer, 0, endBuf.byteLength >> 3)
+  const startList = ipVersion === '4' ? new Uint32Array(startBuf.buffer) : new BigUint64Array(startBuf.buffer)
+  const endList = ipVersion === '4' ? new Uint32Array(endBuf.buffer) : new BigUint64Array(endBuf.buffer)
   const dbList = type === 'country' ? new Uint16Array(dbInfo.buffer) : new Int32Array(dbInfo.buffer)
 
   const length = startList.length
@@ -61,7 +61,7 @@ async function processIpVersion(
     const count = nextIndex - index
 
     const exportBuf = Buffer.alloc(recordSize * count)
-    for (let j = index, k = 0; j < nextIndex; ++j, ++k) {
+    for (let j = index, k = 0; j < nextIndex; ++j) {
       //* Write start and end IP addresses
       if (ipVersion === '4') {
         exportBuf.writeUInt32LE(startList[j] as number, k * 4)
@@ -81,6 +81,7 @@ async function processIpVersion(
         exportBuf.writeInt32LE(dbList[2 * j]!, offset)
         exportBuf.writeInt32LE(dbList[2 * j + 1]!, offset + 4)
       }
+      ++k
     }
 
     //* Write the processed data to a file
