@@ -31,5 +31,6 @@ describe('ipLookup', () => {
     expect.soft(result2).toEqual({ country: 'US' })
 
     await expect.soft(IpLookup('invalid')).rejects.toThrow('Invalid IPv4 address: invalid')
+    await expect.soft(IpLookup('0000:0000:0000:0000:0000:0000:0000:0000')).resolves.toBeNull()
   })
 })
