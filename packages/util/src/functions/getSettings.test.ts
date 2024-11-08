@@ -21,7 +21,7 @@ describe('getSettings', () => {
 
   it('should return default settings when no input is provided', () => {
     const settings = getSettings()
-    expect(settings).toMatchObject({
+    expect.soft(settings).toMatchObject({
       licenseKey: DEFAULT_SETTINGS.licenseKey,
       series: DEFAULT_SETTINGS.series,
       fields: DEFAULT_SETTINGS.fields,
@@ -41,7 +41,7 @@ describe('getSettings', () => {
       smallMemoryFileSize: 8192,
     }
     const settings = getSettings(inputSettings)
-    expect(settings).toMatchObject({
+    expect.soft(settings).toMatchObject({
       licenseKey: 'test-key',
       series: 'GeoIP2',
       fields: ['country', 'city'],
@@ -60,7 +60,7 @@ describe('getSettings', () => {
     process.env.ILA_SMALL_MEMORY_FILE_SIZE = '16384'
 
     const settings = getSettings()
-    expect(settings).toMatchObject({
+    expect.soft(settings).toMatchObject({
       licenseKey: 'env-key',
       series: 'GeoIP2',
       fields: ['country', 'city'],
@@ -83,7 +83,7 @@ describe('getSettings', () => {
     ]
 
     const settings = getSettings()
-    expect(settings).toMatchObject({
+    expect.soft(settings).toMatchObject({
       licenseKey: 'cli-key',
       series: 'GeoIP2',
       fields: ['country', 'region1'],
@@ -98,11 +98,11 @@ describe('getSettings', () => {
       fields: 'all',
     }
     const settings = getSettings(inputSettings)
-    expect(settings.fields).toEqual([...MAIN_FIELDS, ...LOCATION_FIELDS])
+    expect.soft(settings.fields).toEqual([...MAIN_FIELDS, ...LOCATION_FIELDS])
 
     process.argv = [...process.argv, 'ILA_FIELDS=all']
     const settings2 = getSettings()
-    expect(settings2.fields).toEqual([...MAIN_FIELDS, ...LOCATION_FIELDS])
+    expect.soft(settings2.fields).toEqual([...MAIN_FIELDS, ...LOCATION_FIELDS])
   })
 
   it('should filter out invalid fields', () => {
@@ -110,7 +110,7 @@ describe('getSettings', () => {
       fields: ['country', 'invalid_field', 'city'] as any,
     }
     const settings = getSettings(inputSettings)
-    expect(settings.fields).toEqual(['country', 'city'])
+    expect.soft(settings.fields).toEqual(['country', 'city'])
   })
 
   it('should handle invalid fields input', () => {
@@ -118,7 +118,7 @@ describe('getSettings', () => {
       fields: 0 as any,
     }
     const settings = getSettings(inputSettings)
-    expect(settings.fields).toEqual(DEFAULT_SETTINGS.fields)
+    expect.soft(settings.fields).toEqual(DEFAULT_SETTINGS.fields)
   })
 
   it('should use default fields if all provided fields are invalid', () => {
@@ -126,7 +126,7 @@ describe('getSettings', () => {
       fields: ['invalid_field1', 'invalid_field2'] as any,
     }
     const settings = getSettings(inputSettings)
-    expect(settings.fields).toEqual(DEFAULT_SETTINGS.fields)
+    expect.soft(settings.fields).toEqual(DEFAULT_SETTINGS.fields)
   })
 
   it('should process directory paths correctly', () => {
@@ -135,8 +135,8 @@ describe('getSettings', () => {
       tmpDataDir: '/tmp/custom-tmp',
     }
     const settings = getSettings(inputSettings)
-    expect(settings.dataDir).toMatch(/custom-data$/)
-    expect(settings.tmpDataDir).toBe('/tmp/custom-tmp')
+    expect.soft(settings.dataDir).toMatch(/custom-data$/)
+    expect.soft(settings.tmpDataDir).toBe('/tmp/custom-tmp')
   })
 
   it('should calculate correct record sizes and database settings', () => {
@@ -146,28 +146,28 @@ describe('getSettings', () => {
       smallMemoryFileSize: 4096,
     }
     const settings = getSettings(inputSettings)
-    expect(settings.dataType).toBe('City')
-    expect(settings.locationFile).toBe(true)
-    expect(settings.mainRecordSize).toBeGreaterThan(0)
-    expect(settings.locationRecordSize).toBeGreaterThan(0)
-    expect(settings.v4.recordSize).toBeGreaterThan(settings.mainRecordSize)
-    expect(settings.v6.recordSize).toBeGreaterThan(settings.mainRecordSize)
-    expect(settings.v4.fileLineMax).toBeGreaterThan(0)
-    expect(settings.v6.fileLineMax).toBeGreaterThan(0)
+    expect.soft(settings.dataType).toBe('City')
+    expect.soft(settings.locationFile).toBe(true)
+    expect.soft(settings.mainRecordSize).toBeGreaterThan(0)
+    expect.soft(settings.locationRecordSize).toBeGreaterThan(0)
+    expect.soft(settings.v4.recordSize).toBeGreaterThan(settings.mainRecordSize)
+    expect.soft(settings.v6.recordSize).toBeGreaterThan(settings.mainRecordSize)
+    expect.soft(settings.v4.fileLineMax).toBeGreaterThan(0)
+    expect.soft(settings.v6.fileLineMax).toBeGreaterThan(0)
 
     const settings2 = getSettings({
       fields: ['country', 'city', 'latitude', 'longitude'],
       smallMemory: true,
       smallMemoryFileSize: 0,
     })
-    expect(settings2.dataType).toBe('City')
-    expect(settings2.locationFile).toBe(true)
-    expect(settings2.mainRecordSize).toBeGreaterThan(0)
-    expect(settings2.locationRecordSize).toBeGreaterThan(0)
-    expect(settings2.v4.recordSize).toBeGreaterThan(settings2.mainRecordSize)
-    expect(settings2.v6.recordSize).toBeGreaterThan(settings2.mainRecordSize)
-    expect(settings2.v4.fileLineMax).toBe(1)
-    expect(settings2.v6.fileLineMax).toBe(1)
+    expect.soft(settings2.dataType).toBe('City')
+    expect.soft(settings2.locationFile).toBe(true)
+    expect.soft(settings2.mainRecordSize).toBeGreaterThan(0)
+    expect.soft(settings2.locationRecordSize).toBeGreaterThan(0)
+    expect.soft(settings2.v4.recordSize).toBeGreaterThan(settings2.mainRecordSize)
+    expect.soft(settings2.v6.recordSize).toBeGreaterThan(settings2.mainRecordSize)
+    expect.soft(settings2.v4.fileLineMax).toBe(1)
+    expect.soft(settings2.v6.fileLineMax).toBe(1)
   })
 
   it('should generate correct fieldDir', () => {
@@ -177,7 +177,7 @@ describe('getSettings', () => {
     }
     const settings = getSettings(inputSettings)
     const expectedFieldDir = join('/custom/data/dir', (16 + 2048).toString(36))
-    expect(settings.fieldDir).toBe(expectedFieldDir)
+    expect.soft(settings.fieldDir).toBe(expectedFieldDir)
   })
 
   it('should handle invalid language input', () => {
@@ -185,7 +185,7 @@ describe('getSettings', () => {
       language: 'invalid_language' as any,
     }
     const settings = getSettings(inputSettings)
-    expect(settings.language).toBe(DEFAULT_SETTINGS.language)
+    expect.soft(settings.language).toBe(DEFAULT_SETTINGS.language)
   })
 
   it('should handle invalid series input', () => {
@@ -193,6 +193,6 @@ describe('getSettings', () => {
       series: 'InvalidSeries' as any,
     }
     const settings = getSettings(inputSettings)
-    expect(settings.series).toBe(DEFAULT_SETTINGS.series)
+    expect.soft(settings.series).toBe(DEFAULT_SETTINGS.series)
   })
 })

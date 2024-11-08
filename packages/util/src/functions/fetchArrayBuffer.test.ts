@@ -24,11 +24,11 @@ describe('fetchArrayBuffer', () => {
 
     const result = await fetchArrayBuffer(new URL('https://example.com'))
 
-    expect(result).toEqual({
+    expect.soft(result).toEqual({
       buffer: mockArrayBuffer,
       versionHeader: '1.0.0',
     })
-    expect(globalThis.fetch).toHaveBeenCalledWith(new URL('https://example.com'))
+    expect.soft(globalThis.fetch).toHaveBeenCalledWith(new URL('https://example.com'))
   })
 
   it('should return null for 404 response', async () => {
@@ -40,8 +40,8 @@ describe('fetchArrayBuffer', () => {
 
     const result = await fetchArrayBuffer(new URL('https://example.com'))
 
-    expect(result).toBeNull()
-    expect(globalThis.fetch).toHaveBeenCalledWith(new URL('https://example.com'))
+    expect.soft(result).toBeNull()
+    expect.soft(globalThis.fetch).toHaveBeenCalledWith(new URL('https://example.com'))
   })
 
   it('should retry on non-404 error', async () => {
@@ -54,11 +54,11 @@ describe('fetchArrayBuffer', () => {
 
     await fetchArrayBuffer(new URL('https://example.com'))
 
-    expect(globalThis.fetch).toHaveBeenCalledTimes(4) // Initial request + 3 retries
-    expect(sleep).toHaveBeenCalledTimes(3)
-    expect(sleep).toHaveBeenNthCalledWith(1, 100)
-    expect(sleep).toHaveBeenNthCalledWith(2, 400)
-    expect(sleep).toHaveBeenNthCalledWith(3, 900)
+    expect.soft(globalThis.fetch).toHaveBeenCalledTimes(4) // Initial request + 3 retries
+    expect.soft(sleep).toHaveBeenCalledTimes(3)
+    expect.soft(sleep).toHaveBeenNthCalledWith(1, 100)
+    expect.soft(sleep).toHaveBeenNthCalledWith(2, 400)
+    expect.soft(sleep).toHaveBeenNthCalledWith(3, 900)
   })
 
   it('should return null after all retries fail', async () => {
@@ -71,8 +71,8 @@ describe('fetchArrayBuffer', () => {
 
     const result = await fetchArrayBuffer(new URL('https://example.com'))
 
-    expect(result).toBeNull()
-    expect(globalThis.fetch).toHaveBeenCalledTimes(4) // Initial request + 3 retries
+    expect.soft(result).toBeNull()
+    expect.soft(globalThis.fetch).toHaveBeenCalledTimes(4) // Initial request + 3 retries
   })
 
   it('should handle missing version header', async () => {
@@ -86,7 +86,7 @@ describe('fetchArrayBuffer', () => {
 
     const result = await fetchArrayBuffer(new URL('https://example.com'))
 
-    expect(result).toEqual({
+    expect.soft(result).toEqual({
       buffer: mockArrayBuffer,
       versionHeader: undefined,
     })

@@ -15,7 +15,7 @@ describe('sleep', () => {
     const endTime = Date.now()
     const elapsedTime = endTime - startTime
 
-    expect(elapsedTime).toBeGreaterThanOrEqual(sleepTime)
+    expect.soft(elapsedTime).toBeGreaterThanOrEqual(sleepTime)
   })
 
   it('should resolve after the specified time', async () => {
@@ -25,17 +25,17 @@ describe('sleep', () => {
 
     const sleepPromise = sleep(sleepTime)
 
-    expect(vi.getTimerCount()).toBe(1)
+    expect.soft(vi.getTimerCount()).toBe(1)
 
     vi.advanceTimersByTime(sleepTime - 1)
     await Promise.resolve() // Allow any pending microtasks to run
 
-    expect(vi.getTimerCount()).toBe(1)
+    expect.soft(vi.getTimerCount()).toBe(1)
 
     vi.advanceTimersByTime(1)
     await sleepPromise
 
-    expect(vi.getTimerCount()).toBe(0)
+    expect.soft(vi.getTimerCount()).toBe(0)
   })
 
   afterEach(() => {

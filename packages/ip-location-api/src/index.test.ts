@@ -23,33 +23,31 @@ describe('lookup (country)', () => {
   it('should return the country for a valid IP address', async ({ expect }) => {
     //* Ipv4
     const result = await lookup('8.8.8.8')
-    expect(result).not.toBeNull()
-    expect(result).toEqual({ country: 'US' })
+    expect.soft(result).not.toBeNull()
+    expect.soft(result).toEqual({ country: 'US' })
 
     const result2 = await lookup('207.97.227.239')
-    expect(result2).not.toBeNull()
-    expect(result2).toEqual({ country: 'US' })
+    expect.soft(result2).not.toBeNull()
+    expect.soft(result2).toEqual({ country: 'US' })
 
     //* Ipv6
     const result3 = await lookup('2607:F8B0:4005:801::200E')
-    expect(result3).not.toBeNull()
-    expect(result3).toEqual({ country: 'US' })
+    expect.soft(result3).not.toBeNull()
+    expect.soft(result3).toEqual({ country: 'US' })
 
     //* Invalid IP address
-    await expect(lookup('invalid')).rejects.toThrowError('Invalid IPv4 address: invalid')
+    await expect.soft(lookup('invalid')).rejects.toThrowError('Invalid IPv4 address: invalid')
 
     //* Too high IP address
-    expect(await lookup('256.256.256.256')).toBeNull()
+    await expect.soft(lookup('256.256.256.256')).resolves.toBeNull()
 
     //* Clear data
     clear()
 
     //* Ips should return null after data is cleared
-    const result4 = await lookup('8.8.8.8')
-    expect(result4).toBeNull()
+    await expect.soft(lookup('8.8.8.8')).resolves.toBeNull()
 
-    const result5 = await lookup('2607:F8B0:4005:801::200E')
-    expect(result5).toBeNull()
+    await expect.soft(lookup('2607:F8B0:4005:801::200E')).resolves.toBeNull()
   })
 })
 
@@ -74,33 +72,31 @@ describe('lookup (country, smallMemory)', () => {
   it('should return the country for a valid IP address', async ({ expect }) => {
     //* Ipv4
     const result = await lookup('8.8.8.8')
-    expect(result).not.toBeNull()
-    expect(result).toEqual({ country: 'US' })
+    expect.soft(result).not.toBeNull()
+    expect.soft(result).toEqual({ country: 'US' })
 
     const result2 = await lookup('207.97.227.239')
-    expect(result2).not.toBeNull()
-    expect(result2).toEqual({ country: 'US' })
+    expect.soft(result2).not.toBeNull()
+    expect.soft(result2).toEqual({ country: 'US' })
 
     //* Ipv6
     const result3 = await lookup('2607:F8B0:4005:801::200E')
-    expect(result3).not.toBeNull()
-    expect(result3).toEqual({ country: 'US' })
+    expect.soft(result3).not.toBeNull()
+    expect.soft(result3).toEqual({ country: 'US' })
 
     //* Invalid IP address
-    await expect(lookup('invalid')).rejects.toThrowError('Invalid IPv4 address: invalid')
+    await expect.soft(lookup('invalid')).rejects.toThrowError('Invalid IPv4 address: invalid')
 
     //* Too high IP address
-    expect(await lookup('256.256.256.256')).toBeNull()
+    await expect.soft(lookup('256.256.256.256')).resolves.toBeNull()
 
     //* Clear data
     clear()
 
     //* Ips should return null after data is cleared
-    const result4 = await lookup('8.8.8.8')
-    expect(result4).toBeNull()
+    await expect.soft(lookup('8.8.8.8')).resolves.toBeNull()
 
-    const result5 = await lookup('2607:F8B0:4005:801::200E')
-    expect(result5).toBeNull()
+    await expect.soft(lookup('2607:F8B0:4005:801::200E')).resolves.toBeNull()
   })
 })
 
@@ -124,13 +120,13 @@ describe('lookup (city)', () => {
   it('should return the city and country for a valid IP address', async ({ expect }) => {
     //* Ipv4
     const result = await lookup('170.171.1.0')
-    expect(result).not.toBeNull()
-    expect(result).toEqual({ city: 'New York', country: 'US' })
+    expect.soft(result).not.toBeNull()
+    expect.soft(result).toEqual({ city: 'New York', country: 'US' })
 
     //* Ipv6
     const result2 = await lookup('2606:2e00:8003::216:3eff:fe82:68ab')
-    expect(result2).not.toBeNull()
-    expect(result2).toEqual({ city: 'New York', country: 'US' })
+    expect.soft(result2).not.toBeNull()
+    expect.soft(result2).toEqual({ city: 'New York', country: 'US' })
   })
 })
 
@@ -156,8 +152,8 @@ describe('lookup (all, smallMemory)', () => {
   it('should return all fields for a valid IP address', async ({ expect }) => {
     //* Ipv4 (Metro code)
     const result1 = await lookup('170.171.1.0')
-    expect(result1).not.toBeNull()
-    expect(result1).toEqual({
+    expect.soft(result1).not.toBeNull()
+    expect.soft(result1).toEqual({
       area: 10,
       capital: 'Washington D.C.',
       city: 'New York',
@@ -189,8 +185,8 @@ describe('lookup (all, smallMemory)', () => {
 
     //* Ipv4 (Region2)
     const result2 = await lookup('213.189.170.238')
-    expect(result2).not.toBeNull()
-    expect(result2).toEqual({
+    expect.soft(result2).not.toBeNull()
+    expect.soft(result2).toEqual({
       area: 50,
       capital: 'Brussels',
       city: 'Charleroi',
@@ -238,14 +234,14 @@ describe('lookup (all, smallMemory)', () => {
 
     for (const { ip, postcode } of postalCodesTest) {
       const result = await lookup(ip)
-      expect(result).not.toBeNull()
-      expect(result).toMatchObject({ postcode })
+      expect.soft(result).not.toBeNull()
+      expect.soft(result).toMatchObject({ postcode })
     }
 
     //* Ipv6
     const result4 = await lookup('2607:F8B0:4005:801::200E')
-    expect(result4).not.toBeNull()
-    expect(result4).toEqual({
+    expect.soft(result4).not.toBeNull()
+    expect.soft(result4).toEqual({
       area: 1000,
       capital: 'Washington D.C.',
       continent: 'NA',
@@ -271,19 +267,17 @@ describe('lookup (all, smallMemory)', () => {
     })
 
     //* Invalid IP address
-    await expect(lookup('invalid')).rejects.toThrowError('Invalid IPv4 address: invalid')
+    await expect.soft(lookup('invalid')).rejects.toThrowError('Invalid IPv4 address: invalid')
 
     //* Too high IP address
-    expect(await lookup('256.256.256.256')).toBeNull()
+    await expect.soft(lookup('256.256.256.256')).resolves.toBeNull()
 
     //* Clear data
     clear()
 
     //* Ips should return null after data is cleared
-    const result5 = await lookup('8.8.8.8')
-    expect(result5).toBeNull()
+    await expect.soft(lookup('8.8.8.8')).resolves.toBeNull()
 
-    const result6 = await lookup('2607:F8B0:4005:801::200E')
-    expect(result6).toBeNull()
+    await expect.soft(lookup('2607:F8B0:4005:801::200E')).resolves.toBeNull()
   })
 })
