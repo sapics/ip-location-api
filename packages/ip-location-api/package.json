@@ -41,6 +41,9 @@
     "build": "vite build",
     "build:watch": "vite build --watch"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "countries-list": "^3.1.1"
   },
