@@ -158,7 +158,7 @@ describe('lookup (all, smallMemory)', () => {
     const result1 = await lookup('170.171.1.0')
     expect(result1).not.toBeNull()
     expect(result1).toEqual({
-      area: 5,
+      area: 10,
       capital: 'Washington D.C.',
       city: 'New York',
       continent: 'NA',
@@ -175,13 +175,13 @@ describe('lookup (all, smallMemory)', () => {
       languages: [
         'en',
       ],
-      latitude: 40.7683,
-      longitude: -73.9802,
+      latitude: 40.7621,
+      longitude: -73.9517,
       metro: 501,
       phone: [
         1,
       ],
-      postcode: '10019',
+      postcode: '10044',
       region1: 'NY',
       region1_name: 'New York',
       timezone: 'America/New_York',
@@ -193,7 +193,7 @@ describe('lookup (all, smallMemory)', () => {
     expect(result2).toEqual({
       area: 50,
       capital: 'Brussels',
-      city: 'Châtelineau',
+      city: 'Charleroi',
       continent: 'EU',
       continent_name: 'Europe',
       country: 'BE',
@@ -208,12 +208,12 @@ describe('lookup (all, smallMemory)', () => {
         'fr',
         'de',
       ],
-      latitude: 50.4148,
-      longitude: 4.5257,
+      latitude: 50.4102,
+      longitude: 4.4472,
       phone: [
         32,
       ],
-      postcode: '6200',
+      postcode: '6000',
       region1: 'WAL',
       region1_name: 'Wallonia',
       region2: 'WHT',

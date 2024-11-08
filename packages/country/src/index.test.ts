@@ -24,5 +24,12 @@ describe('ipLookup', () => {
     })
     const result = await IpLookup('207.97.227.239')
     expect(result).not.toBeNull()
+    expect(result).toEqual({ country: 'US' })
+
+    const result2 = await IpLookup('2607:F8B0:4005:801::200E')
+    expect(result2).not.toBeNull()
+    expect(result2).toEqual({ country: 'US' })
+
+    await expect(IpLookup('invalid')).rejects.toThrow('Invalid IPv4 address: invalid')
   })
 })
