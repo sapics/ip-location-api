@@ -1,7 +1,7 @@
 import type { IpLocationApiInputSettings } from '@iplookup/util'
 import { resolve } from 'node:path'
 import { createBrowserIndex } from '@iplookup/util/browserIndex'
-import { update } from '@iplookup/util/db'
+import { update } from '@iplookup/util/dbIpUpdate'
 import replace from '@rollup/plugin-replace'
 import { defineConfig } from 'vite'
 import checker from 'vite-plugin-checker'
@@ -51,7 +51,7 @@ export default defineConfig({
         const settings: IpLocationApiInputSettings = {
           dataDir: resolve('../../data/geocode'),
           tmpDataDir: resolve('../../tmp/geocode'),
-          fields: ['country', 'latitude', 'longitude'],
+          fields: ['latitude', 'longitude'],
         }
         await update(settings)
         await createBrowserIndex('geocode', settings, resolve('./indexes'))

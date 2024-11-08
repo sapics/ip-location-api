@@ -19,7 +19,8 @@
     ".": "./dist/index.js",
     "./browser": "./dist/browser.js",
     "./browserIndex": "./dist/browserIndex.js",
-    "./db": "./dist/db.js"
+    "./db": "./dist/db.js",
+    "./dbIpUpdate": "./dist/dbIpUpdate.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
