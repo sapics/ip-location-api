@@ -39,7 +39,8 @@
   ],
   "scripts": {
     "build": "vite build",
-    "build:watch": "vite build --watch"
+    "build:watch": "vite build --watch",
+    "release": "bumpp package.json --commit --push --tag"
   },
   "publishConfig": {
     "access": "public"
