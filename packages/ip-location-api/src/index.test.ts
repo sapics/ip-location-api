@@ -1,10 +1,11 @@
+import { randomUUID } from 'node:crypto'
 import { rm } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { afterAll, beforeAll, describe, it } from 'vitest'
 import { clear, lookup, reload } from './index'
 
 describe('lookup (country)', () => {
-  const id = crypto.randomUUID()
+  const id = randomUUID()
 
   beforeAll(async () => {
     await reload({
@@ -52,7 +53,7 @@ describe('lookup (country)', () => {
 })
 
 describe('lookup (country, smallMemory)', () => {
-  const id = crypto.randomUUID()
+  const id = randomUUID()
 
   beforeAll(async () => {
     await reload({
@@ -101,7 +102,7 @@ describe('lookup (country, smallMemory)', () => {
 })
 
 describe('lookup (city)', () => {
-  const id = crypto.randomUUID()
+  const id = randomUUID()
 
   beforeAll(async () => {
     await reload({
@@ -131,7 +132,7 @@ describe('lookup (city)', () => {
 })
 
 describe('lookup (all, smallMemory)', () => {
-  const id = crypto.randomUUID()
+  const id = randomUUID()
 
   beforeAll(async () => {
     await reload({
