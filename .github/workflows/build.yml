@@ -1,9 +1,6 @@
 name: Build
 
 on:
-  push:
-    branches:
-      - main
   workflow_call:
   pull_request:
     types:
@@ -37,9 +34,3 @@ jobs:
 
       - name: Test
         run: pnpm test
-
-      - name: Publish
-        if: github.repository == 'sapics/ip-location-api'
-        run: pnpm -r publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
