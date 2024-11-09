@@ -10,16 +10,6 @@ export default defineConfig({
         index: 'src/index.ts',
       },
       formats: ['es', 'cjs'],
-      fileName: (format, entryName) => {
-        switch (format) {
-          case 'es':
-            return `${entryName}.mjs`
-          case 'cjs':
-            return `${entryName}.cjs`
-          default:
-            return `${entryName}.js`
-        }
-      },
       name: 'IpLookup',
     },
     rollupOptions: {
@@ -27,7 +17,6 @@ export default defineConfig({
     },
     sourcemap: true,
     ssr: true,
-    // minify: 'esbuild',
   },
   plugins: [
     checker({

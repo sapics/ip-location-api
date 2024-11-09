@@ -61,7 +61,7 @@ function getDatabaseInfo(settings: IpLocationApiSettings): { edition: string, sr
 async function getRemoteSha256(settings: IpLocationApiSettings, databaseEdition: string): Promise<string> {
   const shaUrl = settings.licenseKey === 'redist'
     ? `https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/${databaseEdition}${DATABASE_SUFFIX_SHA}`
-    : `${MAXMIND_URL}?edition_id=${databaseEdition}&suffix=${DATABASE_SUFFIX_SHA}&license_key=${settings.licenseKey}`
+    : `${MAXMIND_URL}?edition_id=${databaseEdition}&suffix=${DATABASE_SUFFIX_SHA.slice(1)}&license_key=${settings.licenseKey}`
 
   const shaText = await ky.get(shaUrl).text()
   const sha256 = shaText.match(/\w{50,}/)?.[0]
@@ -118,7 +118,7 @@ async function isUpToDate(settings: IpLocationApiSettings, databaseEdition: stri
 async function downloadDatabase(settings: IpLocationApiSettings, databaseEdition: string): Promise<string> {
   const zipUrl = settings.licenseKey === 'redist'
     ? `https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/${databaseEdition}${DATABASE_SUFFIX_ZIP}`
-    : `${MAXMIND_URL}?edition_id=${databaseEdition}&suffix=${DATABASE_SUFFIX_ZIP}&license_key=${settings.licenseKey}`
+    : `${MAXMIND_URL}?edition_id=${databaseEdition}&suffix=${DATABASE_SUFFIX_ZIP.slice(1)}&license_key=${settings.licenseKey}`
 
   const response = await ky.get(zipUrl)
   const stream = response.body
