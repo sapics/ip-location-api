@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { open } from 'node:fs/promises'
 import { join } from 'node:path'
-import { binarySearch, getSmallMemoryFile, type IpLocationApiSettings, type LocalDatabase, number37ToString, parseIp, SAVED_SETTINGS } from '@iplookup/util'
+import { binarySearch, getSmallMemoryFile, type IpLocationApiSettings, type LocalDatabase, log, number37ToString, parseIp, SAVED_SETTINGS } from '@iplookup/util'
 import { LOADED_DATA } from './reload.js'
 
 /**
@@ -193,7 +193,7 @@ async function lineToFile(line: number, db: LocalDatabase, settings: IpLocationA
   const buffer = Buffer.alloc(db.recordSize)
   await fd.read(buffer, 0, db.recordSize, offset)
   fd.close().catch(() => {
-    // TODO console.warn
+    log('warn', 'Failed to close file descriptor')
   })
   return buffer
 }
@@ -375,8 +375,7 @@ async function setCountryInfo(geodata: GeoData, settings: IpLocationApiSettings)
       /* c8 ignore next 5 */ //* We don't check the try-catch as it's an optional peer dependency
     }
     catch (error) {
-      // TODO add correct debug message
-      console.error('Error importing countries-list', error)
+      log('warn', 'Error importing countries-list', error)
     }
   }
   return geodata

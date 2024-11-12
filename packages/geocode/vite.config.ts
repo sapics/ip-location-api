@@ -52,6 +52,7 @@ export default defineConfig({
           dataDir: resolve('../../data/geocode'),
           tmpDataDir: resolve('../../tmp/geocode'),
           fields: ['latitude', 'longitude'],
+          silent: true,
         }
         await update(settings)
         await createBrowserIndex('geocode', settings, resolve('./indexes'))

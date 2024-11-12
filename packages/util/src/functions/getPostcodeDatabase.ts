@@ -1,3 +1,5 @@
+import { log } from './log.js'
+
 const isPostNumReg = /^\d+$/
 const isPostNumReg2 = /^(\d+)[-\s](\d+)$/
 const isPostStrReg = /^[A-Z\d]+$/
@@ -53,7 +55,7 @@ export function getPostcodeDatabase(postcode: string): [number, number] {
 
   const stringMatch2 = isPostStrReg2.exec(postcode)
   if (!stringMatch2) {
-    // TODO: add invalid postcode debug log
+    log('warn', `Invalid postcode ${postcode}`)
     return [0, 0] //* Invalid postcode
   }
 

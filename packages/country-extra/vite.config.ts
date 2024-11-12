@@ -52,6 +52,7 @@ export default defineConfig({
           dataDir: resolve('../../data/country'),
           tmpDataDir: resolve('../../tmp/country'),
           fields: ['country'],
+          silent: true,
         }
         await update(settings)
         await createBrowserIndex('country', settings, resolve('./indexes'))

@@ -12,8 +12,9 @@ describe('lookup (city)', () => {
       dataDir: resolve(__dirname, '../data', id),
       tmpDataDir: resolve(__dirname, '../tmp', id),
       fields: ['city', 'country'],
+      silent: true,
     })
-  }, 15 * 60_000)
+  }, 25 * 60_000)
 
   afterAll(async () => {
     clear()

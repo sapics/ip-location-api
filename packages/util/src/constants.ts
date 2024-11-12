@@ -35,4 +35,10 @@ export const DEFAULT_SETTINGS: IpLocationApiSettings = {
   v4,
   v6,
   addCountryInfo: false,
+  silent: false,
+}
+// eslint-disable-next-line import/no-mutable-exports
+export let SAVED_SETTINGS: IpLocationApiSettings = DEFAULT_SETTINGS
+export function setSavedSettings(settings: IpLocationApiSettings) {
+  return SAVED_SETTINGS = settings
 }

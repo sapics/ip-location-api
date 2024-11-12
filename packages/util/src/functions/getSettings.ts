@@ -2,7 +2,7 @@ import type { Buffer } from 'node:buffer'
 import { dirname, join, resolve as resolvePath } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { DEFAULT_SETTINGS, LOCATION_FIELDS, MAIN_FIELDS, v4, v6 } from '../constants.js'
+import { DEFAULT_SETTINGS, LOCATION_FIELDS, MAIN_FIELDS, setSavedSettings, v4, v6 } from '../constants.js'
 import { getFieldsSize } from './getFieldsSize.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -76,6 +76,11 @@ export interface IpLocationApiInputSettings {
    * @link https://www.npmjs.com/package/countries-list
    */
   addCountryInfo?: boolean
+  /**
+   * Whether to suppress logging
+   * @default false
+   */
+  silent?: boolean
 }
 
 export interface IpLocationApiSettings {
@@ -95,6 +100,7 @@ export interface IpLocationApiSettings {
   v4: LocalDatabase<4>
   v6: LocalDatabase<6>
   addCountryInfo: boolean
+  silent: boolean
 }
 
 /**
@@ -127,9 +133,6 @@ const FIELD_BIT_FLAG: Record<((typeof MAIN_FIELDS)[number] | (typeof LOCATION_FI
   city: 2048,
   eu: 4096,
 }
-
-// eslint-disable-next-line import/no-mutable-exports
-export let SAVED_SETTINGS: IpLocationApiSettings = DEFAULT_SETTINGS
 
 /**
  * Get the settings from various sources and merge them with default values
@@ -182,7 +185,7 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
   }
 
   //* Construct and return the final settings
-  return SAVED_SETTINGS = {
+  return setSavedSettings({
     licenseKey: mergedSettings.licenseKey,
     dataDir,
     tmpDataDir,
@@ -199,7 +202,8 @@ export function getSettings(settings?: IpLocationApiInputSettings): IpLocationAp
     v4,
     v6,
     addCountryInfo: mergedSettings.addCountryInfo,
-  }
+    silent: mergedSettings.silent,
+  })
 }
 
 /**

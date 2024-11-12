@@ -10,6 +10,7 @@ import { Address4, Address6 } from 'ip-address'
 import { aton4 } from '../aton4.js'
 import { aton6 } from '../aton6.js'
 import { getPostcodeDatabase } from '../getPostcodeDatabase.js'
+import { log } from '../log.js'
 import { makeDatabase } from '../makeDatabase.js'
 import { createSmallMemoryFile } from './createSmallMemoryFile.js'
 
@@ -41,6 +42,19 @@ export async function createBlockDatabase(
   settings: IpLocationApiSettings,
 ): Promise<void> {
   const version = file.endsWith('v4.csv') ? 4 : 6
+  log('info', `Creating block database for IPv${version}...`)
+
+  //* First count total lines
+  let totalLines = 0
+  await new Promise<void>((resolve) => {
+    createReadStream(path.join(settings.tmpDataDir, file))
+      .pipe(parse({ headers: true }))
+      .on('data', () => { totalLines++ })
+      .on('end', resolve)
+  })
+
+  log('info', `Found ${totalLines.toLocaleString()} total records to process`)
+
   const readStream = createReadStream(path.join(settings.tmpDataDir, file))
   const writeStreamDat1 = createWriteStream(path.join(settings.fieldDir, `${version}-1.dat.tmp`), { highWaterMark: 1024 * 1024 })
 
@@ -60,16 +74,14 @@ export async function createBlockDatabase(
   }
 
   return new Promise<void>((resolve, reject) => {
-    //* Count the number of checks to ensure all streams are written before resolving
     let checkCount = 0
     function check() {
-      if (++checkCount === 3)
+      if (++checkCount === 3) {
+        log('info', `Completed processing IPv${version} block database`)
         resolve()
+      }
     }
 
-    /**
-     * Represents the data from the previous row for comparison and optimization.
-     */
     let previousData: {
       countryCode?: string
       end: number | bigint
@@ -84,10 +96,21 @@ export async function createBlockDatabase(
       counter?: number
     } | undefined
     let lineCount = 0
+    let processedCount = 0
+    const logInterval = 100000 // Log every 100k records
 
     readStream.pipe(parse({ headers: true }))
-      .on('error', reject)
+      .on('error', (error) => {
+        log('error', `Error processing IPv${version} block database: ${error.message}`)
+        reject(error)
+      })
       .on('data', (row: BlockDatabaseRow) => {
+        processedCount++
+        if (processedCount % logInterval === 0) {
+          const percentage = ((processedCount / totalLines) * 100).toFixed(2)
+          log('info', `Processed ${processedCount.toLocaleString()} IPv${version} records (${percentage}%)...`)
+        }
+
         const addr = version === 4 ? new Address4(row.network!) : new Address6(row.network!)
         const start = version === 4 ? aton4(addr.startAddress().correctForm()) : aton6(addr.startAddress().correctForm())
         const end = version === 4 ? aton4(addr.endAddress().correctForm()) : aton6(addr.endAddress().correctForm())
@@ -196,12 +219,16 @@ export async function createBlockDatabase(
             }
           }
           else {
-            if (!locationId)
-              return // TODO add debug log
+            if (!locationId) {
+              log('warn', 'No location ID found')
+              return
+            }
 
             const dataMap = locationDataMap[locationId]
-            if (!dataMap)
-              return // TODO add debug log
+            if (!dataMap) {
+              log('warn', `Invalid location ID ${locationId}`)
+              return
+            }
 
             //* Assign a counter if it doesn't exist
             if (!dataMap.counter) {
@@ -294,6 +321,8 @@ export async function createBlockDatabase(
         }
       })
       .on('end', () => {
+        log('info', `Finished processing ${processedCount.toLocaleString()} IPv${version} records (100%)`)
+
         if (settings.smallMemory && previousData?.buffer2 && previousData?.buffer3) {
           writeStreamSmallMemory = createSmallMemoryFile(writeStreamSmallMemory!, version, lineCount++, previousData.buffer2, previousData.buffer3, settings)
           writeStreamSmallMemory?.end(check)

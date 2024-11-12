@@ -7,6 +7,7 @@ import { Writable } from 'node:stream'
 import ky from 'ky'
 import { open } from 'yauzl'
 import { DATABASE_SUFFIX_SHA, DATABASE_SUFFIX_ZIP, MAXMIND_URL } from '../../constants.js'
+import { log } from '../log.js'
 
 /**
  * Downloads and extracts the database if an update is needed.
@@ -26,7 +27,9 @@ export async function downloadAndExtractDatabase(settings: IpLocationApiSettings
   }
 
   const zipPath = await downloadDatabase(settings, edition)
+  log('info', `Decompressing ${edition}...`)
   const files = await extractDatabase(zipPath, settings.tmpDataDir, src)
+  log('info', `Decompressed ${edition}, extracted ${files.length} files`)
   return { files, sha256: remoteHash }
 }
 
@@ -153,7 +156,7 @@ async function extractDatabase(zipPath: string, outputDir: string, filesToExtrac
         //* Check if the entry matches any files to extract
         const matchedFile = filesToExtract.find(file => entry.fileName.endsWith(file))
         if (matchedFile) {
-          // TODO: Add debug log
+          log('info', `Extracting ${matchedFile}...`)
           //* Open the read stream for the entry
           zipfile.openReadStream(entry, (err, readStream) => {
             if (err)

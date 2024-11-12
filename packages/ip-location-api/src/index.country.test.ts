@@ -12,6 +12,7 @@ describe('lookup (country)', () => {
       dataDir: resolve(__dirname, '../data', id),
       tmpDataDir: resolve(__dirname, '../tmp', id),
       fields: ['country'],
+      silent: true,
     })
   }, 5 * 60_000)
 

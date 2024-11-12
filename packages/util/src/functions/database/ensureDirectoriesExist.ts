@@ -1,6 +1,7 @@
 import type { IpLocationApiSettings } from '../getSettings.js'
 import { existsSync } from 'node:fs'
 import { mkdir } from 'node:fs/promises'
+import { log } from '../log.js'
 
 /**
  * Ensures that the necessary directories exist.
@@ -11,7 +12,7 @@ import { mkdir } from 'node:fs/promises'
 export async function ensureDirectoriesExist({ fieldDir, tmpDataDir }: IpLocationApiSettings): Promise<void> {
   for (const dir of [fieldDir, tmpDataDir]) {
     if (!existsSync(dir)) {
-      // TODO: Add debug log to indicate that the directory is being created
+      log('info', `Creating directory ${dir}`)
       await mkdir(dir, { recursive: true })
     }
   }

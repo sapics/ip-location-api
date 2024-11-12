@@ -7,6 +7,7 @@ import { createDatabase } from './functions/database/createDatabase.js'
 import { downloadAndExtractDatabase } from './functions/database/downloadAndExtractDatabase.js'
 import { ensureDirectoriesExist } from './functions/database/ensureDirectoriesExist.js'
 import { getSettings } from './functions/getSettings.js'
+import { log } from './functions/log.js'
 
 /**
  * Updates the GeoIP database based on the provided settings.
@@ -15,13 +16,14 @@ import { getSettings } from './functions/getSettings.js'
 export async function update(inputSettings?: Partial<IpLocationApiInputSettings>): Promise<void> {
   const settings = getSettings(inputSettings)
   await ensureDirectoriesExist(settings)
+  log('info', 'Downloading database...')
   const { files, sha256 } = await downloadAndExtractDatabase(settings)
   if (!files || files.length === 0)
     return
 
-  // TODO: Add debug log
+  log('info', 'Creating database...')
   await createDatabase(files, settings)
-  // TODO: Add debug log
+  log('info', 'Database created')
 
   //* Save the sha256 hash of the database
   await writeFile(path.join(settings.fieldDir, `${settings.series}-${settings.dataType}-CSV${DATABASE_SUFFIX_SHA}`), sha256)
@@ -40,4 +42,6 @@ export async function update(inputSettings?: Partial<IpLocationApiInputSettings>
     await rm(path.join(settings.fieldDir, 'v4-tmp'), { recursive: true, force: true, maxRetries: 3 })
     await rm(path.join(settings.fieldDir, 'v6-tmp'), { recursive: true, force: true, maxRetries: 3 })
   }
+
+  log('info', 'Database successfully updated')
 }

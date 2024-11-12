@@ -13,6 +13,7 @@ describe('lookup (country, smallMemory)', () => {
       tmpDataDir: resolve(__dirname, '../tmp', id),
       fields: ['country'],
       smallMemory: true,
+      silent: true,
     })
   }, 5 * 60_000)
 

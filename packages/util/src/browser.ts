@@ -1,5 +1,6 @@
 import { binarySearch } from './functions/binarySearch.js'
 import { fetchArrayBuffer } from './functions/fetchArrayBuffer.js'
+import { log } from './functions/log.js'
 import { numberToCountryCode } from './functions/numberToCountryCode.js'
 import { numberToDir } from './functions/numberToDir.js'
 import { parseIp } from './functions/parseIp.js'
@@ -32,13 +33,15 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
     //* Get the index for the IP version
     const index = INDEXES[version] ?? (await loadIndex(version))
     if (!index) {
-      // TODO add debug log
+      log('warn', 'No index found')
       return null
     }
 
     //* If the IP is less than the first index, return null
-    if (!(ip >= index[0]!))
+    if (!(ip >= index[0]!)) {
+      log('warn', `IP ${ipInput} is out of range`)
       return null
+    }
 
     //* Binary search to find the correct line in the index
     const lineIndex = binarySearch(index, ip)
@@ -51,7 +54,7 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
       new URL(`${DATA_URL[version]}/indexes/${version}/${numberToDir(lineIndex)}`),
     )
     if (!dataResponse) {
-      // TODO Add debug log
+      log('warn', 'Index file not found, is it corrupted?')
       return null
     }
 
@@ -115,8 +118,10 @@ export function setup<T extends 'country' | 'geocode'>(): (ipInput: string) => P
     const result = await fetchArrayBuffer(
       new URL(`${baseUrl}/indexes/${version}.idx`),
     )
-    if (!result)
-      return // TODO add debug log
+    if (!result) {
+      log('warn', 'Index file not found, is it corrupted?')
+      return null
+    }
 
     const { versionHeader, buffer } = result
     if (versionHeader)
