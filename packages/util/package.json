@@ -1,0 +1,31 @@
+{
+  "name": "@iplookup/util",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./dist/index.js",
+    "./browser": "./dist/browser.js",
+    "./browserIndex": "./dist/browserIndex.js",
+    "./db": "./dist/db.js",
+    "./dbIpUpdate": "./dist/dbIpUpdate.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch"
+  },
+  "dependencies": {
+    "@fast-csv/parse": "^5.0.0",
+    "ip-address": "^9.0.5",
+    "ky": "^1.7.2",
+    "yauzl": "^3.1.3"
+  },
+  "devDependencies": {
+    "@types/yauzl": "^2.10.3"
+  }
+}

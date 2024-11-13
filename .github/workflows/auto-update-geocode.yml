@@ -1,31 +1,41 @@
-name: Auto database update browser-geocode
+name: Auto Update Geocode Packages
+
 on:
   schedule:
     - cron: '2 0 1,2,3 * *'
   workflow_dispatch:
+
 jobs:
   release:
-    name: Auto database update browser-geocode
+    if: github.repository == 'sapics/ip-location-api'
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version-file: package.json
+          cache: pnpm
           registry-url: 'https://registry.npmjs.org'
-      - name: install dependencies
-        run: npm i
-      - name: update
-        run: npm run updatedb-browser-geocode
-      - name: test
-        run: npm run test
-      - name: commit
-        run: script/auto-update-geocode.sh
+
+      - name: Install dependencies
+        run: pnpm i
+
+      - name: Build
+        run: pnpm -r --workspace-concurrency=1 --filter "@iplookup/geocode*..." build
+
+      - name: Bump version
+        shell: bash
+        run: |
+          //* Increments patch version and appends current date (YYYYMMDD) for all geocode packages
+          for pkg in packages/geocode*; do
+            [ -f "$pkg/package.json" ] \
+              && cd $pkg \
+              && npm pkg set version="$(pnpm exec semver $(node -p "require('./package.json').version") -i patch)-$(date +'%Y%m%d')" \
+              && cd ../..
+          done
+
+      - name: Publish
+        run: pnpm -r --filter "@iplookup/geocode*" publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{secrets.GTOKEN}}
