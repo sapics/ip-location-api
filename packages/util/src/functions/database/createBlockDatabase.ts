@@ -219,10 +219,8 @@ export async function createBlockDatabase(
             }
           }
           else {
-            if (!locationId) {
-              log('warn', 'No location ID found')
+            if (!locationId)
               return
-            }
 
             const dataMap = locationDataMap[locationId]
             if (!dataMap) {
