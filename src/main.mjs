@@ -105,6 +105,80 @@ export const lookup = (ip) => {
 }
 
 /**
+ * lookup ip address
+ * @param {number | BigInt} ip - ipv4 or ipv6 numeric address
+ * @return {LookupResult | Promise<LookupResult | null> | null} location information
+ */
+export const lookupNumber = (ip) => {
+	var isIpv6 = ip.constructor === BigInt
+	if(isIpv6 && ip < BigInt(4294967296)) {
+		ip = Number(ip)
+		isIpv6 = false
+	}
+	const db = isIpv6 ? v6db : v4db
+	if(!(ip >= db.firstIp)) return null
+	const list = db.startIps
+	var fline = 0, cline = db.lastLine, line
+	for(;;){
+		line = fline + cline >> 1
+		if(ip < list[line]){
+			if(cline - fline < 2) return null
+			cline = line - 1
+		} else {
+			if(fline === line) {
+				if(cline !== line && ip >= list[cline]) {
+					line = cline
+				}
+				break
+			}
+			fline = line
+		}
+	}
+
+	if(setting.smallMemory){
+		// this case return Promise
+		return lineToFile(line, db).then(buffer => {
+			var endIp = isIpv6 ? buffer.readBigUInt64LE(0) : buffer.readUInt32LE(0)
+			if(ip > endIp) return null
+			if(setting.isCountry){
+				return setCountryInfo({
+					country: buffer.toString('latin1', isIpv6 ? 8 : 4, isIpv6 ? 10 : 6)
+				})
+			}
+			return setCityRecord(buffer, {}, isIpv6 ? 8 : 4)
+		})
+	}
+	if(ip > db.endIps[line]) return null
+	if(setting.isCountry){
+		return setCountryInfo({
+			country: db.mainBuffer.toString('latin1', line * db.recordSize, line * db.recordSize + 2)
+		})
+	}
+	return setCityRecord(db.mainBuffer, {}, line * db.recordSize)
+}
+
+/**
+ * lookup ip address
+ * @param {string | number | BigInt} ip - ipv4 or ipv6 formatted address or numeric address
+ * @return {LookupResult | Promise<LookupResult | null> | null} location information
+ */
+export const lookupAny = (ip) => {
+	if(typeof ip === 'string'){
+		if(isNaN(ip)){
+			return lookup(ip)
+		} else if(ip > 4294967295){
+			return lookupNumber(BigInt(ip))
+		}
+		return lookupNumber(Number(ip))
+	}
+	if(ip.constructor === BigInt || ip.constructor === Number){
+		return lookupNumber(ip)
+	}
+	return null
+}
+
+
+/**
  * setup database without reload
  * @param {object} [_setting]
  * @return {void}

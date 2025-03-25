@@ -15,13 +15,37 @@ const v6db = setting.v6
 const locFieldHash = setting.locFieldHash
 const mainFieldHash = setting.mainFieldHash
 
+/**
+ * @typedef {Object} LookupResult
+ * @property {number} [latitude]
+ * @property {number} [longitude]
+ * @property {string} [postcode]
+ * @property {string} [area]
+ * @property {string} [country]
+ * @property {boolean} [eu]
+ * @property {string} [region1]
+ * @property {string} [region1_name]
+ * @property {string} [region2]
+ * @property {string} [region2_name]
+ * @property {number} [metro]
+ * @property {string} [timezone]
+ * @property {string} [city]
+ * @property {string} country_name
+ * @property {string} country_native
+ * @property {string} continent
+ * @property {string} continent_name
+ * @property {string} capital
+ * @property {number[]} phone
+ * @property {string[]} currency
+ * @property {string[]} languages
+ */
+
 
 
 /**
  * lookup ip address
- * @type {function}
  * @param {string} ip - ipv4 or ipv6 formatted address
- * @return {object|null|Promise} location information
+ * @return {LookupResult | Promise<LookupResult | null> | null} location information
  */
 const lookup = (ip) => {
 
@@ -76,6 +100,80 @@ const lookup = (ip) => {
 	}
 	return setCityRecord(db.mainBuffer, {}, line * db.recordSize)
 }
+
+/**
+ * lookup ip address
+ * @param {number | BigInt} ip - ipv4 or ipv6 numeric address
+ * @return {LookupResult | Promise<LookupResult | null> | null} location information
+ */
+const lookupNumber = (ip) => {
+	var isIpv6 = ip.constructor === BigInt
+	if(isIpv6 && ip < BigInt(4294967296)) {
+		ip = Number(ip)
+		isIpv6 = false
+	}
+	const db = isIpv6 ? v6db : v4db
+	if(!(ip >= db.firstIp)) return null
+	const list = db.startIps
+	var fline = 0, cline = db.lastLine, line
+	for(;;){
+		line = fline + cline >> 1
+		if(ip < list[line]){
+			if(cline - fline < 2) return null
+			cline = line - 1
+		} else {
+			if(fline === line) {
+				if(cline !== line && ip >= list[cline]) {
+					line = cline
+				}
+				break
+			}
+			fline = line
+		}
+	}
+
+	if(setting.smallMemory){
+
+		return lineToFile(line, db).then(buffer => {
+			var endIp = isIpv6 ? buffer.readBigUInt64LE(0) : buffer.readUInt32LE(0)
+			if(ip > endIp) return null
+			if(setting.isCountry){
+				return setCountryInfo({
+					country: buffer.toString('latin1', isIpv6 ? 8 : 4, isIpv6 ? 10 : 6)
+				})
+			}
+			return setCityRecord(buffer, {}, isIpv6 ? 8 : 4)
+		})
+	}
+	if(ip > db.endIps[line]) return null
+	if(setting.isCountry){
+		return setCountryInfo({
+			country: db.mainBuffer.toString('latin1', line * db.recordSize, line * db.recordSize + 2)
+		})
+	}
+	return setCityRecord(db.mainBuffer, {}, line * db.recordSize)
+}
+
+/**
+ * lookup ip address
+ * @param {string | number | BigInt} ip - ipv4 or ipv6 formatted address or numeric address
+ * @return {LookupResult | Promise<LookupResult | null> | null} location information
+ */
+const lookupAny = (ip) => {
+	if(typeof ip === 'string'){
+		if(isNaN(ip)){
+			return lookup(ip)
+		} else if(ip > 4294967295){
+			return lookupNumber(BigInt(ip))
+		}
+		return lookupNumber(Number(ip))
+	}
+	if(ip.constructor === BigInt || ip.constructor === Number){
+		return lookupNumber(ip)
+	}
+	return null
+}
+
 
 /**
  * setup database without reload
@@ -389,6 +487,15 @@ const lineToFile = async (line, db) => {
 	return buffer
 }
 
+
+
+/**
+ * Set city record
+ * @param {any} buffer
+ * @param {LookupResult} geodata
+ * @param {number} offset
+ * @return {LookupResult}
+ */
 const setCityRecord = (buffer, geodata, offset) => {
 	var locId
 	if(setting.locFile){
@@ -481,6 +588,12 @@ const setCityRecord = (buffer, geodata, offset) => {
 	}
 	return setCountryInfo(geodata)
 }
+
+/**
+ * Set country information
+ * @param {LookupResult} geodata
+ * @return {LookupResult}
+ */
 const setCountryInfo = (geodata) => {
 	if(setting.addCountryInfo){
 		var h = countries[geodata.country]
@@ -497,4 +610,4 @@ const setCountryInfo = (geodata) => {
 }
 reload(undefined, true)
 
-module.exports={lookup:lookup,setupWithoutReload:setupWithoutReload,clear:clear,reload:reload,watchDb:watchDb,stopWatchDb:stopWatchDb,updateDb:updateDb}
+module.exports={lookup:lookup,lookupNumber:lookupNumber,lookupAny:lookupAny,setupWithoutReload:setupWithoutReload,clear:clear,reload:reload,watchDb:watchDb,stopWatchDb:stopWatchDb,updateDb:updateDb}

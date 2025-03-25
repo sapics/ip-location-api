@@ -56,6 +56,9 @@ const update = async () => {
 	if(srcList === 'NO NEED TO UPDATE') {
 		return
 	}
+	if(!Array.isArray(srcList)){
+		return console.log('ERROR TO UPDATE')
+	}
 
 	consoleLog('Creating database for ip-location-api')
 	await createData(srcList)

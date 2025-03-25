@@ -1,43 +1,6 @@
-import type { ICountry, TContinentCode, TContinents, TCountryCode } from "countries-list";
-
-/**
-* Basic lookup result object.
-*
-* All fields are made optional here, as available fields might differ based your settings.
-*
-* Requires runtime null-checks.
-*/
-export type LookupResult = {
-	latitude?: number;
-	longitude?: number;
-	postcode?: string;
-	area?: string;
-	country?: TCountryCode;
-	eu?: boolean;
-	region1?: string;
-	region1_name?: string;
-	region2?: string;
-	region2_name?: string;
-	metro?: number;
-	timezone?: string;
-	city?: string;
-
-	country_name?: ICountry["name"];
-	country_native?: ICountry["native"];
-	continent?: ICountry["continent"];
-	continent_name?: TContinents[TContinentCode];
-	capital?: ICountry["capital"];
-	phone?: ICountry["phone"];
-	currency?: ICountry["currency"];
-	languages?: ICountry["languages"];
-};
-
-/**
- * lookup ip address [Sync / Async]
- * @param {string} ip - ipv4 or ipv6 formatted address
- * @return location information as either object or promise (based on settings), or null if not found.
- */
-export const lookup: (ip: string) => LookupResult | Promise<LookupResult | null> | null;
+export function lookup(ip: string): LookupResult | Promise<LookupResult | null> | null;
+export function lookupNumber(ip: number | bigint): LookupResult | Promise<LookupResult | null> | null;
+export function lookupAny(ip: string | number | bigint): LookupResult | Promise<LookupResult | null> | null;
 /**
  * setup database without reload
  * @param {object} [_setting]
@@ -82,3 +45,26 @@ export const stopWatchDb: Function;
  * @return {Promise<boolean>} - true if database is updated, false if no need to update
  */
 export const updateDb: Function;
+export type LookupResult = {
+    latitude?: number;
+    longitude?: number;
+    postcode?: string;
+    area?: string;
+    country?: string;
+    eu?: boolean;
+    region1?: string;
+    region1_name?: string;
+    region2?: string;
+    region2_name?: string;
+    metro?: number;
+    timezone?: string;
+    city?: string;
+    country_name: string;
+    country_native: string;
+    continent: string;
+    continent_name: string;
+    capital: string;
+    phone: number[];
+    currency: string[];
+    languages: string[];
+};
