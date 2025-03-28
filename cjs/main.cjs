@@ -226,13 +226,8 @@ const reload = async (_setting, sync, _runningUpdate) => {
 
 	var locBuffer, cityNameBuffer, subBuffer
 	var buffer41, buffer42, buffer43, buffer61, buffer62, buffer63
-	var testDir = dataDir
-	if(curSetting.smallMemory){
-		testDir = path.join(testDir, 'v4')
-	}
-
 	if(sync){
-		if(!fsSync.existsSync(dataFiles.v41) || !fsSync.existsSync(dataFiles.v61)){
+		if(!fsSync.existsSync(dataFiles.v41)){
 			consoleLog('Database creating ...')
 			updateDb(_setting && curSetting, true, true)
 			consoleLog('Database created')
@@ -255,7 +250,7 @@ const reload = async (_setting, sync, _runningUpdate) => {
 			}
 		}
 	} else {
-		if(!fsSync.existsSync(testDir)){
+		if(!fsSync.existsSync(dataFiles.v41)){
 			consoleLog('Database creating ...')
 			await updateDb(_setting && curSetting, true)
 			consoleLog('Database created')
