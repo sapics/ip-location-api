@@ -232,7 +232,7 @@ const reload = async (_setting, sync, _runningUpdate) => {
 	}
 
 	if(sync){
-		if(!fsSync.existsSync(testDir)){
+		if(!fsSync.existsSync(dataFiles.v41) || !fsSync.existsSync(dataFiles.v61)){
 			consoleLog('Database creating ...')
 			updateDb(_setting && curSetting, true, true)
 			consoleLog('Database created')
