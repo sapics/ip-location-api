@@ -152,48 +152,126 @@ export const getSmallMemoryFile = (line, db, isTmp) => {
 
 const isPostNumReg = /^\d+$/
 const isPostNumReg2 = /^(\d+)[-\s](\d+)$/
-const isPostStrReg = /^([A-Z\d]+)$/
-const isPostStrReg2 = /^([A-Z\d]+)[-\s]([A-Z\d]+)$/
-export const getPostcodeDatabase = (postcode) => {
-	if(!postcode) return [0, 0];
-	// number type
-	if(isPostNumReg.test(postcode)){
-		return [
-			postcode.length, // 1~9
-			parseInt(postcode, 10) // 0~999999999
-		]
+const isPostStrReg = /^([a-zA-Z\d]+)$/
+const isPostStrReg2 = /^([a-zA-Z\d]+)[-\s]([a-zA-Z\d]+)$/
+
+var postcodeDatabase
+export const initPostcodeDatabase = () => {
+	postcodeDatabase = [null]
+}
+export const getPostcodeDatabase = () => {
+	return postcodeDatabase
+}
+
+const Uint32Max = 0xFFFFFFFF // 4294967295
+
+const createPostcodeDatabase = (postcode) => {
+	var idx = postcodeDatabase.indexOf(postcode)
+	if(idx === -1){
+		idx = postcodeDatabase.length
+		postcodeDatabase.push(postcode)
 	}
-	var r = isPostNumReg2.exec(postcode)
-	if(r){
-		return [
-			parseInt(r[1].length + '' + r[2].length, 10), // 11~66
-			parseInt(r[1] + r[2], 10) // 0~999999999
-		]
+	return [-128, idx]
+}
+
+const zeroStartCount = (postcode) => {
+	var count = 0
+	for(var i = 0; i < postcode.length; i++){
+		if(postcode[i] !== '0'){
+			break;
+		}
+		count++
+	}
+	return count
+}
+
+/**
+ * @param {number} idx (int8)
+ * @param {number} num (uint32)
+ * @param {object} database
+ */
+export const getPostcodeFromDatabase = (idx, num, database) => {
+	if(idx < 0) {
+		if(idx === -128){
+			return database[num]
+		}
+		idx = -idx
+		var str
+		if(idx <= 6){
+			// string type with hyphen or space
+			str = num.toString(36)
+		} else {
+			// for 7 char string type with hyphen or space
+			str = ((idx-6)%36).toString(36) + num.toString(36)
+			idx = ((idx-6)/36|0) + 2
+		}
+		return str.slice(0, idx) + '-' + str.slice(idx)
 	}
 
-	// string type
-	r = isPostStrReg.exec(postcode)
-	if(r){
-		var num = parseInt(postcode, 36)
-		if(num < Math.pow(2, 32)){
-			return [
-				-postcode.length, // -1~-9
-				num
-			]
-		} else {
-			return [
-				parseInt('2' + postcode.slice(0, 1), 36), // 72~107,
-				parseInt(postcode.slice(1), 36) // 0~2176782335 MAX: 6char ZZZZZZ
-			]
+	if(idx <= 10) {
+		// number type
+		return '0'.repeat(idx-1) + num
+	}
+	if(idx <= 20) {
+		// string type
+		return '0'.repeat(idx-11) + num.toString(36)
+	}
+	if(idx <= 56) {
+		// for 7 char string type
+		return (idx-21).toString(36) + num.toString(36)
+	}
+	// number type with hyphen or space
+	idx -= 57
+	var zeroCount = idx & 7, r1length = (idx >> 3) + 1
+	var r = '0'.repeat(zeroCount) + num.toString(10)
+	return r.slice(0, r1length) + '-' + r.slice(r1length)
+}
+
+/**
+ * @param {string} postcode
+ */
+export const getPostcodeDatabaseElement = (postcode) => {
+	if(!postcode) return [0, 0];
+	var idx, num, r
+	// number type
+	if(isPostNumReg.test(postcode)){
+		idx = zeroStartCount(postcode) + 1 // 1-10
+		num = parseInt(postcode, 10)
+		if(num <= Uint32Max && idx <= 10) return [idx, num]
+
+	} else if(isPostStrReg.test(postcode)){
+		// string type
+		idx = zeroStartCount(postcode) + 11 // 11-20
+		num = parseInt(postcode, 36)
+		if(num <= Uint32Max && idx <= 20) return [idx, num]
+
+		// for 7 char string type
+		if(postcode[1] !== '0'){
+			idx = parseInt(postcode[0], 36) + 21 // 21-56
+			num = parseInt(postcode.slice(1), 36)
+			if(num <= Uint32Max) return [idx, num]
+		}
+
+	} else if(r = isPostNumReg2.exec(postcode)) {
+		// number type with hyphen or space
+		idx = (((r[1].length-1) * 8) | zeroStartCount(r[1])) + 57 // 57-127
+		num = parseInt(r[1] + r[2], 10)
+		if(zeroStartCount(r[1]) < 8 && idx <= 127 && num <= Uint32Max) return [idx, num]
+
+	} else if(postcode[0] !== '0' && (r = isPostStrReg2.exec(postcode))){
+		// string type with hyphen or space
+		idx = r[1].length // 1-6
+		num = parseInt(r[1] + r[2], 36)
+		if(num <= Uint32Max && idx <= 6) return [-idx, num]
+
+		// for 7 char string type with hyphen or space
+		num = r[1].slice(1) + r[2]
+		if(num[0] !== '0' && r[1].length > 1){
+			idx = parseInt(postcode[0], 36) + (r[1].length-2)*36 + 6 // 1-35 + (0-3) * 36 + 6
+			num = parseInt(num, 36)
+			if(num <= Uint32Max && idx < 128) return [-idx, num]
 		}
 	}
 
-	r = isPostStrReg2.exec(postcode)
-	if(!r){
-		console.log('Invalid postcode:', postcode)
-	}
-	return [
-		- parseInt(r[1].length + "" + r[2].length, 10),// -11~-55
-		parseInt(r[1] + r[2], 36) // 0~2176782335 MAX: 6char ZZZZZZ
-	]
+	return createPostcodeDatabase(postcode)
 }
