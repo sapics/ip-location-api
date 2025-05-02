@@ -8,7 +8,7 @@ import { countries, continents } from 'countries-list'
 import { CronJob } from 'cron'
 
 import { setting, setSetting, getSettingCmd, consoleLog, consoleWarn } from './setting.mjs'
-import { num37ToStr, getSmallMemoryFile, getZeroFill, aton6Start, aton4 } from './utils.mjs'
+import { num37ToStr, getSmallMemoryFile, getZeroFill, aton6Start, aton4, getPostcodeFromDatabase } from './utils.mjs'
 import { update as updataDbAsync } from './db.mjs'
 
 const v4db = setting.v4
@@ -196,7 +196,7 @@ export const clear = () => {
 	Region1NameJson = Region2NameJson = TimezoneJson = LocBuffer = CityNameBuffer = EuJson = null
 }
 
-var Region1NameJson, Region2NameJson, TimezoneJson, LocBuffer, CityNameBuffer, AreaJson, EuJson
+var Region1NameJson, Region2NameJson, TimezoneJson, LocBuffer, CityNameBuffer, AreaJson, EuJson, PostcodeJson
 var updateJob
 /**
  * reload in-memory database
@@ -225,10 +225,11 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 		v63:           path.join(dataDir, '6-3.dat'),
 		cityLocation: path.join(dataDir, 'location.dat'),
 		cityName:     path.join(dataDir, 'name.dat'),
-		citySub: 		  path.join(dataDir, 'sub.json')
+		citySub: 		  path.join(dataDir, 'sub.json'),
+		postcode:     path.join(dataDir, 'postcode.json')
 	}
 
-	var locBuffer, cityNameBuffer, subBuffer
+	var locBuffer, cityNameBuffer, subBuffer, postcodeBuffer
 	var buffer41, buffer42, buffer43, buffer61, buffer62, buffer63
 	if(sync){
 		if(!fsSync.existsSync(dataFiles.v41)){
@@ -252,6 +253,9 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 			if(locFieldHash.region1_name || locFieldHash.region2_name || locFieldHash.timezone || mainFieldHash.area || locFieldHash.eu){
 				subBuffer = fsSync.readFileSync(dataFiles.citySub)
 			}
+		}
+		if(mainFieldHash.postcode){
+			postcodeBuffer = fsSync.readFileSync(dataFiles.postcode)
 		}
 	} else {
 		if(!fsSync.existsSync(dataFiles.v41)){
@@ -279,6 +283,9 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 			if(locFieldHash.region1_name || locFieldHash.region2_name || locFieldHash.timezone || mainFieldHash.area || locFieldHash.eu){
 				prs.push(fs.readFile(dataFiles.citySub).then(data => subBuffer = data))
 			}
+		}
+		if(mainFieldHash.postcode){
+			prs.push(fs.readFile(dataFiles.postcode).then(data => postcodeBuffer = data))
 		}
 		await Promise.all(prs)
 	}
@@ -311,6 +318,9 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 			if(mainFieldHash.area) AreaJson = tmpJson.area
 			if(locFieldHash.eu) EuJson = tmpJson.eu
 		}
+	}
+	if(postcodeBuffer){
+		PostcodeJson = JSON.parse(postcodeBuffer)
 	}
 
 	// To avoid the error (when the database is updated while the server is running),
@@ -528,26 +538,9 @@ const setCityRecord = (buffer, geodata, offset) => {
 		offset += 4
 	}
 	if(mainFieldHash.postcode){
-		var postcode2 = buffer.readUInt32LE(offset)
 		var postcode1 = buffer.readInt8(offset + 4)
-		if (postcode2) {
-			var postcode, tmp
-			if(postcode1 < -9){
-				tmp = (-postcode1).toString()
-				postcode = postcode2.toString(36)
-				postcode = getZeroFill(postcode.slice(0, -tmp[1]), tmp[0]-0) + '-' + getZeroFill(postcode.slice(-tmp[1]), tmp[1]-0)
-			} else if(postcode1 < 0){
-				postcode = getZeroFill(postcode2.toString(36), -postcode1)
-			} else if(postcode1 < 10){
-				postcode = getZeroFill(postcode2.toString(10), postcode1)
-			} else if(postcode1 < 72){
-				postcode1 = String(postcode1)
-				postcode = getZeroFill(postcode2.toString(10), (postcode1[0]-0) + (postcode1[1]-0))
-				postcode = postcode.slice(0, postcode1[0]-0) + '-' + postcode.slice(postcode1[0]-0)
-			} else {
-				postcode = postcode1.toString(36).slice(1) + postcode2.toString(36)
-			}
-			geodata.postcode = postcode.toUpperCase()
+		if(postcode1){
+			geodata.postcode = getPostcodeFromDatabase(postcode1, buffer.readUInt32LE(offset), PostcodeJson).toUpperCase()
 		}
 		offset += 5
 	}

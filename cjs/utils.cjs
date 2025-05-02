@@ -151,49 +151,126 @@ const getSmallMemoryFile = (line, db, isTmp) => {
 
 const isPostNumReg = /^\d+$/
 const isPostNumReg2 = /^(\d+)[-\s](\d+)$/
-const isPostStrReg = /^([A-Z\d]+)$/
-const isPostStrReg2 = /^([A-Z\d]+)[-\s]([A-Z\d]+)$/
-const getPostcodeDatabase = (postcode) => {
+const isPostStrReg = /^([a-zA-Z\d]+)$/
+const isPostStrReg2 = /^([a-zA-Z\d]+)[-\s]([a-zA-Z\d]+)$/
+
+var postcodeDatabase
+const initPostcodeDatabase = () => {
+	postcodeDatabase = [null]
+}
+const getPostcodeDatabase = () => {
+	return postcodeDatabase
+}
+
+const Uint32Max = 0xFFFFFFFF // 4294967295
+
+const createPostcodeDatabase = (postcode) => {
+	var idx = postcodeDatabase.indexOf(postcode)
+	if(idx === -1){
+		idx = postcodeDatabase.length
+		postcodeDatabase.push(postcode)
+	}
+	return [-128, idx]
+}
+
+const zeroStartCount = (postcode) => {
+	var count = 0
+	for(var i = 0; i < postcode.length; i++){
+		if(postcode[i] !== '0'){
+			break;
+		}
+		count++
+	}
+	return count
+}
+
+/**
+ * @param {number} idx (int8)
+ * @param {number} num (uint32)
+ * @param {object} database
+ */
+const getPostcodeFromDatabase = (idx, num, database) => {
+	if(idx < 0) {
+		if(idx === -128){
+			return database[num]
+		}
+		idx = -idx
+		var str
+		if(idx <= 6){
+
+			str = num.toString(36)
+		} else {
+
+			str = ((idx-6)%36).toString(36) + num.toString(36)
+			idx = ((idx-6)/36|0) + 2
+		}
+		return str.slice(0, idx) + '-' + str.slice(idx)
+	}
+
+	if(idx <= 10) {
+
+		return '0'.repeat(idx-1) + num
+	}
+	if(idx <= 20) {
+
+		return '0'.repeat(idx-11) + num.toString(36)
+	}
+	if(idx <= 56) {
+
+		return (idx-21).toString(36) + num.toString(36)
+	}
+
+	idx -= 57
+	var zeroCount = idx & 7, r1length = (idx >> 3) + 1
+	var r = '0'.repeat(zeroCount) + num.toString(10)
+	return r.slice(0, r1length) + '-' + r.slice(r1length)
+}
+
+/**
+ * @param {string} postcode
+ */
+const getPostcodeDatabaseElement = (postcode) => {
 	if(!postcode) return [0, 0];
+	var idx, num, r
 
 	if(isPostNumReg.test(postcode)){
-		return [
-			postcode.length, // 1~9
-			parseInt(postcode, 10) // 0~999999999
-		]
-	}
-	var r = isPostNumReg2.exec(postcode)
-	if(r){
-		return [
-			parseInt(r[1].length + '' + r[2].length, 10), // 11~66
-			parseInt(r[1] + r[2], 10) // 0~999999999
-		]
-	}
+		idx = zeroStartCount(postcode) + 1 // 1-10
+		num = parseInt(postcode, 10)
+		if(num <= Uint32Max && idx <= 10) return [idx, num]
 
-	r = isPostStrReg.exec(postcode)
-	if(r){
-		var num = parseInt(postcode, 36)
-		if(num < Math.pow(2, 32)){
-			return [
-				-postcode.length, // -1~-9
-				num
-			]
-		} else {
-			return [
-				parseInt('2' + postcode.slice(0, 1), 36), // 72~107,
-				parseInt(postcode.slice(1), 36) // 0~2176782335 MAX: 6char ZZZZZZ
-			]
+	} else if(isPostStrReg.test(postcode)){
+
+		idx = zeroStartCount(postcode) + 11 // 11-20
+		num = parseInt(postcode, 36)
+		if(num <= Uint32Max && idx <= 20) return [idx, num]
+
+		if(postcode[1] !== '0'){
+			idx = parseInt(postcode[0], 36) + 21 // 21-56
+			num = parseInt(postcode.slice(1), 36)
+			if(num <= Uint32Max) return [idx, num]
+		}
+
+	} else if(r = isPostNumReg2.exec(postcode)) {
+
+		idx = (((r[1].length-1) * 8) | zeroStartCount(r[1])) + 57 // 57-127
+		num = parseInt(r[1] + r[2], 10)
+		if(zeroStartCount(r[1]) < 8 && idx <= 127 && num <= Uint32Max) return [idx, num]
+
+	} else if(postcode[0] !== '0' && (r = isPostStrReg2.exec(postcode))){
+
+		idx = r[1].length // 1-6
+		num = parseInt(r[1] + r[2], 36)
+		if(num <= Uint32Max && idx <= 6) return [-idx, num]
+
+		num = r[1].slice(1) + r[2]
+		if(num[0] !== '0' && r[1].length > 1){
+			idx = parseInt(postcode[0], 36) + (r[1].length-2)*36 + 6 // 1-35 + (0-3) * 36 + 6
+			num = parseInt(num, 36)
+			if(num <= Uint32Max && idx < 128) return [-idx, num]
 		}
 	}
 
-	r = isPostStrReg2.exec(postcode)
-	if(!r){
-		console.log('Invalid postcode:', postcode)
-	}
-	return [
-		- parseInt(r[1].length + "" + r[2].length, 10),// -11~-55
-		parseInt(r[1] + r[2], 36) // 0~2176782335 MAX: 6char ZZZZZZ
-	]
+	return createPostcodeDatabase(postcode)
 }
 
-module.exports={countryCodeToNum:countryCodeToNum,numToCountryCode:numToCountryCode,getFieldsSize:getFieldsSize,ntoa4:ntoa4,aton4:aton4,aton6Start:aton6Start,aton6:aton6,v4Mapped:v4Mapped,isPrivateIP:isPrivateIP,strToNum37:strToNum37,num37ToStr:num37ToStr,getZeroFill:getZeroFill,numberToDir:numberToDir,getSmallMemoryFile:getSmallMemoryFile,getPostcodeDatabase:getPostcodeDatabase}
+module.exports={countryCodeToNum:countryCodeToNum,numToCountryCode:numToCountryCode,getFieldsSize:getFieldsSize,ntoa4:ntoa4,aton4:aton4,aton6Start:aton6Start,aton6:aton6,v4Mapped:v4Mapped,isPrivateIP:isPrivateIP,strToNum37:strToNum37,num37ToStr:num37ToStr,getZeroFill:getZeroFill,numberToDir:numberToDir,getSmallMemoryFile:getSmallMemoryFile,initPostcodeDatabase:initPostcodeDatabase,getPostcodeDatabase:getPostcodeDatabase,getPostcodeFromDatabase:getPostcodeFromDatabase,getPostcodeDatabaseElement:getPostcodeDatabaseElement}

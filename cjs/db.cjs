@@ -12,7 +12,7 @@ const { Address4, Address6 } = require('ip-address')
 const dayjs = require('dayjs')
 
 const { setting, consoleLog, consoleWarn } = require('./setting.cjs')
-const { getPostcodeDatabase, strToNum37, aton4, aton6, getSmallMemoryFile, numberToDir, countryCodeToNum } = require('./utils.cjs')
+const { getPostcodeDatabaseElement, getPostcodeDatabase, strToNum37, aton4, aton6, getSmallMemoryFile, numberToDir, countryCodeToNum, initPostcodeDatabase } = require('./utils.cjs')
 
 
 const rimraf = (dir) => {
@@ -441,6 +441,10 @@ const createMainData = async (file, mapDatas) => {
 	var mapData0 = mapDatas[0], locIdList = mapDatas[mapDatas.length - 1]
 	var lineCount = 0
 	areaDatabase = {}, areaCount = 0
+
+	if(setting.mainFieldHash.postcode){
+		initPostcodeDatabase()
+	}
 	
 	return new Promise((resolve, reject) => {
 		var checkCount = 0
@@ -594,7 +598,7 @@ const createMainData = async (file, mapDatas) => {
 							offset += 4
 						}
 						if(setting.mainFieldHash.postcode) {
-							var postcodeDb = getPostcodeDatabase(postcode)
+							var postcodeDb = getPostcodeDatabaseElement(postcode)
 							buffer3.writeUInt32LE(postcodeDb[1], offset)
 							buffer3.writeInt8(postcodeDb[0], offset + 4)
 							offset += 5
@@ -625,6 +629,10 @@ const createMainData = async (file, mapDatas) => {
 				}
 			})
 			.on('end', () => {
+				if(setting.mainFieldHash.postcode){
+					var postcodeDatabase = getPostcodeDatabase()
+					fsSync.writeFileSync(path.join(setting.fieldDir, 'postcode.json.tmp'), JSON.stringify(postcodeDatabase))
+				}
 				if(setting.smallMemory){
 					ws = createSmallMemoryFile(ws, ipv4, lineCount, preBuffer2, preBuffer3)
 					if(ws) ws.end(check)
