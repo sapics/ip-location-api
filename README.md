@@ -130,7 +130,7 @@ Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is 
 | dataDir | ILA_DATA_DIR | ../data | Directory for database file |
 | tmpDataDir | ILA_TMP_DATA_DIR | ../tmp | Directory for temporary file |
 | apiDir | ILA_API_DIR | .. | Directory for ip-location-api |
-| smallMemory | ILA_SMALL_MEMORY | false | false: synchronouns, ture: asynchronouns |
+| smallMemory | ILA_SMALL_MEMORY | false | false: synchronouns, true: asynchronouns |
 | smallMemoryFileSize | ILA_SMALL_MEMORY_FILE_SIZE | 4096 | Max file size for asynchronouns data (no change is recommended) |
 | licenseKey | ILA_LICENSE_KEY | redist | By setting [MaxMind](https://www.maxmind.com/) License key, you can download latest version of database from [MaxMind](https://www.maxmind.com/) server. By setting to "redist", you can download the database from [node-geolite2-redist](https://github.com/sapics/node-geolite2-redist) repository which re-distribute the GeoLite2 database. |
 | ipLocationDb | ILA_IP_LOCATION_DB | | When you need only "country" field, you can use [ip-location-db](https://github.com/sapics/ip-location-db) data |
