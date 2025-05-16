@@ -171,6 +171,10 @@ You can "YOUR_CHOOSEN_DATABSE" from [ip-location-db](https://github.com/sapics/i
 The other example, "geo-whois-asn" is [CC0 licensed database](https://github.com/sapics/ip-location-db/tree/main/geo-asn-country), if you are unable to apply the GeoLite2 License.
 
 
+It takes a few minutes to create the database.
+Therefore, if you are releasing to production without a database, it is recommended that you create the database first, using commands before executing the release.
+
+
 After v2.0, the database is created automatically at initial startup, and updated automatically by setting `ILA_AUTO_UPDATE` which updates twice weekly with default setting.
 
 
