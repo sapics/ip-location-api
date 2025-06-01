@@ -46,7 +46,7 @@ const shortNumber = {
 	latitude: 1,
 	longitude: 2,
 	area: 4,
-	postcode: 8,
+	postcode: 8192,// change 8 to 8192 with v2 to v3, because postcode database was changed
 	country: 16,
 	region1: 32,
 	region1_name: 64,
