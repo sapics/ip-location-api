@@ -6,6 +6,9 @@ Fast and customizable nodejs api to get geolocation information from ip address.
 This api is created for server-side javascript like Node.js.
 If you need client-side javascript which works in **BROWSER**, please try to use [@iplookup/country](https://github.com/sapics/ip-location-api/tree/main/browser/country) or [@iplookup/geocode](https://github.com/sapics/ip-location-api/tree/main/browser/geocode).
 
+It may take a few minutes on the first run because the database needs to be created.
+To avoid this delay, you can generate the database in advance.
+Please see [the documentation below for instructions](https://github.com/sapics/ip-location-api?tab=readme-ov-file#update-database).
 
 ## Synopsis
 
@@ -13,6 +16,8 @@ If you need client-side javascript which works in **BROWSER**, please try to use
 import { lookup } from 'ip-location-api'
 // or CJS format
 // const { lookup } = require('ip-location-api')
+// for module bandle (eg., webpack, next.js, etc.)
+// import { lookup } from 'ip-location-api/pack'
 
 var ip = "207.97.227.239"
 var location = lookup(ip)
