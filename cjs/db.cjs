@@ -2,11 +2,11 @@
 const fs = require('fs/promises')
 const fsSync = require('fs')
 const path = require('path')
+const { fetch, request } = require('undici')
 const { fileURLToPath } = require('url')
 const { createHash } = require('crypto')
 const { pipeline } = require('stream/promises')
 
-const axios = require('axios')
 const { parse } = require('@fast-csv/parse')
 const { Address4, Address6 } = require('ip-address')
 const dayjs = require('dayjs')
@@ -101,16 +101,12 @@ const ipLocationDb = async (db) => {
 
 const _ipLocationDb = async (url) => {
 	var fileEnd = url.split('-').pop()
-	return axios({
-		method: 'get',
-		url: url,
-		responseType: 'stream'
-	}).then(res => {
+	return request(url).then(res => {
 		return new Promise((resolve, reject) => {
 			var fileName = setting.ipLocationDb + '-Blocks-' + fileEnd
 			const ws = fsSync.createWriteStream(path.join(setting.tmpDataDir, fileName))
 			ws.write('network1,network2,cc\n')
-			res.data.pipe(ws)
+			res.body.pipe(ws)
 			ws.on('finish', () => {
 				resolve(fileName)
 			})
@@ -291,8 +287,8 @@ const downloadZip = async () => {
 		url = 'https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/'
 		url += database.edition + '.' + database.suffix
 	}
-	var text = await axios.get(url)
-	var reg = /\w{50,}/, r = reg.exec(text.data)
+	var text = await (await request(url)).body.text()
+	var reg = /\w{50,}/, r = reg.exec(text)
 	if(!r) {
 		return consoleWarn('Cannot download sha256')
 	}
@@ -324,16 +320,12 @@ const downloadZip = async () => {
 		url = 'https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/'
 		url += database.edition + '.' + database.suffix.replace('.sha256', '')
 	}
-	return axios({
-		method: 'get',
-		url: url,
-		responseType: 'stream'
-	}).then(res => {
+	return request(url).then(res => {
 		const dest = fsSync.createWriteStream(zipPath)
 		return new Promise((resolve, reject) => {
 			consoleLog('Decompressing', database.edition + '.zip')
-			res.data.pipe(dest)
-			res.data.on('end', () => {
+			res.body.pipe(dest)
+			res.body.on('end', () => {
 				yauzl.open(zipPath, {lazyEntries: true}, (err, zipfile) => {
 					if(err) return reject(err)
 					zipfile.readEntry()
@@ -356,7 +348,7 @@ const downloadZip = async () => {
 					zipfile.on('end', () => resolve(database.src))
 				})
 			})
-			res.data.on('error', reject)
+			res.body.on('error', reject)
 		})
 	})
 }
