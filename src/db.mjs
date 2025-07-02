@@ -1,5 +1,6 @@
 import fs from 'fs/promises'
 import fsSync from 'fs'
+import { Readable } from 'node:stream'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createHash } from 'crypto'
@@ -296,8 +297,8 @@ const downloadZip = async () => {
 		url = 'https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/'
 		url += database.edition + '.' + database.suffix
 	}
-	var text = await axios.get(url)
-	var reg = /\w{50,}/, r = reg.exec(text.data)
+	var text = await (await fetch(url)).text()
+	var reg = /\w{50,}/, r = reg.exec(text)
 	if(!r) {
 		return consoleWarn('Cannot download sha256')
 	}
@@ -329,16 +330,13 @@ const downloadZip = async () => {
 		url = 'https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/'
 		url += database.edition + '.' + database.suffix.replace('.sha256', '')
 	}
-	return axios({
-		method: 'get',
-		url: url,
-		responseType: 'stream'
-	}).then(res => {
+	return fetch(url).then(res => {
+		let zipReadStream = Readable.fromWeb(res.body)
 		const dest = fsSync.createWriteStream(zipPath)
 		return new Promise((resolve, reject) => {
 			consoleLog('Decompressing', database.edition + '.zip')
-			res.data.pipe(dest)
-			res.data.on('end', () => {
+			zipReadStream.pipe(dest)
+			zipReadStream.on('end', () => {
 				yauzl.open(zipPath, {lazyEntries: true}, (err, zipfile) => {
 					if(err) return reject(err)
 					zipfile.readEntry()
@@ -361,7 +359,7 @@ const downloadZip = async () => {
 					zipfile.on('end', () => resolve(database.src))
 				})
 			})
-			res.data.on('error', reject)
+			zipReadStream.on('error', reject)
 		})
 	})
 }
