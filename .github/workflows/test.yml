@@ -2,7 +2,9 @@ name: Test
 
 on:
   workflow_dispatch:
-
+  pull_request:
+    branches:
+      - main
 jobs:
   test-esm:
     name: Test ESM & CJS
