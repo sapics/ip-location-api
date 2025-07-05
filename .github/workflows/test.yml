@@ -27,5 +27,5 @@ jobs:
         npx jasmine spec/*.mjs
     - name: run test CJS
       run: |
-        npm run updatedb-cjs
+        npm run cjs
         npx jasmine spec/*.cjs
