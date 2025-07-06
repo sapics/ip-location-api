@@ -23,6 +23,7 @@ for(var file of files){
 			return '\nconst ' + p1
 		})
 		src = src.replace(/\nexport\s+const\s+(\w+)/g, '\nconst $1 = exports.$1')
+		src = src.replace(/import\('node-fetch'\)[^\}]+/, 'global.fetch = require(\'node-fetch\') ')
 		src = src.replace(/(?:\n|^)import\s+([^\n]+)\s+from([^\n]+)/g, (m, p1, p2) => {
 			return '\nconst ' + p1 + ' = require(' + p2.replace(".mjs'", ".cjs'").replace(".mjs\"", ".cjs\"").trim() + ')'
 		})
