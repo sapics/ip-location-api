@@ -19,6 +19,7 @@
   "scripts": {
     "test": "npx jasmine",
     "updatedb": "node script/updatedb.mjs",
+    "updatedb-cjs": "node script/updatedb.cjs",
     "updatedb-browser-country": "node script/updatedb.mjs ILA_BROWSER_TYPE=country ILA_IP_LOCATION_DB=geo-whois-asn",
     "updatedb-browser-geocode": "node script/updatedb.mjs ILA_BROWSER_TYPE=geocode ILA_FIELDS=latitude,longitude",
     "browser": "npx http-server browser -p 8321",
