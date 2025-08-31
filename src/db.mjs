@@ -17,10 +17,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const rimraf = (dir) => {
-	if(fs.rm){
-		return fs.rm(dir, {recursive: true, force: true, maxRetries: 3})
-	}
-	return fs.rmdir(dir, {recursive: true, maxRetries: 3})
+	return fs.rm(dir, {recursive: true, force: true, maxRetries: 3})
 }
 
 //---------------------------------------
@@ -68,7 +65,7 @@ export const update = async () => {
 
 	// remove tmp folder
 	if(refreshTmpDir){
-		await rimraf(setting.tmpDataDir, {recursive: true, force: true})
+		await rimraf(setting.tmpDataDir)
 	}
 	if(SHA256_RESULT){
 		// save sha256
