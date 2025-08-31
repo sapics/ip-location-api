@@ -1,6 +1,6 @@
 {
   "name": "ip-location-api",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "description": "Fast location lookup from IP address",
   "keywords": [
     "location",
@@ -35,7 +35,7 @@
   "license": "Multiple licenses",
   "type": "module",
   "engines": {
-    "node": ">=14.8.0"
+    "node": ">=17.5.0"
   },
   "main": "cjs/main.cjs",
   "types": "types/cjs/main.d.cts",
@@ -103,7 +103,6 @@
     "README.md"
   ],
   "dependencies": {
-    "axios": "^1.8.4",
     "countries-list": "^3.1.1",
     "cron": "^3.1.7",
     "dayjs": "^1.11.13",

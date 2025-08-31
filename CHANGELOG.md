@@ -1,6 +1,14 @@
 # Changelog
 
-##3.0.2
+## 4.0.0
+
+Drop support for nodejs < 18.
+From this version, we support http_proxy and https_proxy.
+
+Note: `axios` was removed and migrated to native fetch (Node.js 18+ required).
+
+
+## 3.0.2
 
 After this version, the database directory which includes `postcode` is changed.
 The database is **automatically updated when changing from v2 to v3**.
