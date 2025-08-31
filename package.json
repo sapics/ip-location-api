@@ -35,7 +35,7 @@
   "license": "Multiple licenses",
   "type": "module",
   "engines": {
-    "node": ">=17.5.0"
+    "node": ">=18.0.0"
   },
   "main": "cjs/main.cjs",
   "types": "types/cjs/main.d.cts",

@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { createHash } from 'crypto'
 import { pipeline } from 'stream/promises'
+import { Readable } from 'stream'
 
 import { parse } from '@fast-csv/parse'
 import { Address4, Address6 } from 'ip-address'
@@ -107,7 +108,7 @@ const _ipLocationDb = async (url) => {
 		var fileName = setting.ipLocationDb + '-Blocks-' + fileEnd
 		const ws = fsSync.createWriteStream(path.join(setting.tmpDataDir, fileName))
 		ws.write('network1,network2,cc\n')
-		res.body.pipe(ws)
+		Readable.fromWeb(res.body).pipe(ws)
 		ws.on('finish', () => {
 			resolve(fileName)
 		})
@@ -328,11 +329,12 @@ const downloadZip = async () => {
 	const res = await fetch(url)
 	if (!res.ok) throw new Error(`Failed to fetch: ${url}`)
 	const dest = fsSync.createWriteStream(zipPath)
-	res.body.pipe(dest)
+	const stream = Readable.fromWeb(res.body)
+	stream.pipe(dest)
 	return new Promise((resolve, reject) => {
 		consoleLog('Decompressing', database.edition + '.zip')
-		res.body.on('error', reject)
-		res.body.on('end', () => {
+		stream.on('error', reject)
+		stream.on('end', () => {
 			yauzl.open(zipPath, {lazyEntries: true}, (err, zipfile) => {
 				if(err) return reject(err)
 				zipfile.readEntry()
