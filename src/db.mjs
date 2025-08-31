@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url'
 import { createHash } from 'crypto'
 import { pipeline } from 'stream/promises'
 
-import axios from 'axios'
 import { parse } from '@fast-csv/parse'
 import { Address4, Address6 } from 'ip-address'
 import dayjs from 'dayjs'
@@ -102,21 +101,17 @@ const ipLocationDb = async (db) => {
 
 const _ipLocationDb = async (url) => {
 	var fileEnd = url.split('-').pop()
-	return axios({
-		method: 'get',
-		url: url,
-		responseType: 'stream'
-	}).then(res => {
-		return new Promise((resolve, reject) => {
-			var fileName = setting.ipLocationDb + '-Blocks-' + fileEnd
-			const ws = fsSync.createWriteStream(path.join(setting.tmpDataDir, fileName))
-			ws.write('network1,network2,cc\n')
-			res.data.pipe(ws)
-			ws.on('finish', () => {
-				resolve(fileName)
-			})
-			ws.on('error', reject)
+	const res = await fetch(url)
+	if (!res.ok) throw new Error(`Failed to fetch: ${url}`)
+	return new Promise((resolve, reject) => {
+		var fileName = setting.ipLocationDb + '-Blocks-' + fileEnd
+		const ws = fsSync.createWriteStream(path.join(setting.tmpDataDir, fileName))
+		ws.write('network1,network2,cc\n')
+		res.body.pipe(ws)
+		ws.on('finish', () => {
+			resolve(fileName)
 		})
+		ws.on('error', reject)
 	})
 }
 
@@ -293,8 +288,12 @@ const downloadZip = async () => {
 		url = 'https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/'
 		url += database.edition + '.' + database.suffix
 	}
-	var text = await axios.get(url)
-	var reg = /\w{50,}/, r = reg.exec(text.data)
+	const textRes = await fetch(url)
+	if (!textRes.ok) {
+		return consoleWarn('Cannot download sha256')
+	}
+	const text = await textRes.text()
+	var reg = /\w{50,}/, r = reg.exec(text)
 	if(!r) {
 		return consoleWarn('Cannot download sha256')
 	}
@@ -326,39 +325,35 @@ const downloadZip = async () => {
 		url = 'https://raw.githubusercontent.com/sapics/node-geolite2-redist/master/redist/'
 		url += database.edition + '.' + database.suffix.replace('.sha256', '')
 	}
-	return axios({
-		method: 'get',
-		url: url,
-		responseType: 'stream'
-	}).then(res => {
-		const dest = fsSync.createWriteStream(zipPath)
-		return new Promise((resolve, reject) => {
-			consoleLog('Decompressing', database.edition + '.zip')
-			res.data.pipe(dest)
-			res.data.on('end', () => {
-				yauzl.open(zipPath, {lazyEntries: true}, (err, zipfile) => {
-					if(err) return reject(err)
-					zipfile.readEntry()
-					zipfile.on('entry', entry => {
-						for(var src of database.src){
-							if(!entry.fileName.endsWith(src)) continue;
-							consoleLog('Extracting', entry.fileName)
-							return (function(src){
-								zipfile.openReadStream(entry, (err, readStream) => {
-									if(err) return reject(err)
-									readStream.pipe(fsSync.createWriteStream(path.join(setting.tmpDataDir, src)))
-									readStream.on('end', () => {
-										zipfile.readEntry()
-									})
+	const res = await fetch(url)
+	if (!res.ok) throw new Error(`Failed to fetch: ${url}`)
+	const dest = fsSync.createWriteStream(zipPath)
+	res.body.pipe(dest)
+	return new Promise((resolve, reject) => {
+		consoleLog('Decompressing', database.edition + '.zip')
+		res.body.on('error', reject)
+		res.body.on('end', () => {
+			yauzl.open(zipPath, {lazyEntries: true}, (err, zipfile) => {
+				if(err) return reject(err)
+				zipfile.readEntry()
+				zipfile.on('entry', entry => {
+					for(var src of database.src){
+						if(!entry.fileName.endsWith(src)) continue;
+						consoleLog('Extracting', entry.fileName)
+						return (function(src){
+							zipfile.openReadStream(entry, (err, readStream) => {
+								if(err) return reject(err)
+								readStream.pipe(fsSync.createWriteStream(path.join(setting.tmpDataDir, src)))
+								readStream.on('end', () => {
+									zipfile.readEntry()
 								})
-							})(src)
-						}
-						zipfile.readEntry()
-					})
-					zipfile.on('end', () => resolve(database.src))
+							})
+						})(src)
+					}
+					zipfile.readEntry()
 				})
+				zipfile.on('end', () => resolve(database.src))
 			})
-			res.data.on('error', reject)
 		})
 	})
 }
