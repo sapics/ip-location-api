@@ -262,6 +262,7 @@ ILA_TMP_DATA_DIR=/your_tmporary_directory_for_database
 ## Node.js version
 
 This library supports Node.js >= 18 for ESM and CJS.
+For Node.js 14 and 16, please try to v3.
 
 
 ## License and EULA
