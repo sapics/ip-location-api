@@ -591,6 +591,7 @@ const setCityRecord = (buffer, geodata, offset) => {
 const setCountryInfo = (geodata) => {
 	if(setting.addCountryInfo){
 		var h = countries[geodata.country]
+		if(!h) return geodata
 		geodata.country_name = h.name
 		geodata.country_native = h.native
 		geodata.continent = h.continent
