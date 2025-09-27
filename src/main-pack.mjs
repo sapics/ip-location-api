@@ -426,10 +426,9 @@ export const updateDb = (_setting, noReload, sync) => {
 		runningUpdate = true
 		arg += ' ILA_RUNNING_UPDATE=true'
 	}
+	arg += ' ILA_SILENT=false'
 
-	if(arg){
-		cmd += ' ' + arg
-	}
+	cmd += ' ' + arg
 	if(sync){
 		try{
 			var stdout = execSync(cmd)
@@ -607,6 +606,7 @@ const setCityRecord = (buffer, geodata, offset) => {
 const setCountryInfo = (geodata) => {
 	if(setting.addCountryInfo){
 		var h = countries[geodata.country]
+		if(!h) return geodata
 		geodata.country_name = h.name
 		geodata.country_native = h.native
 		geodata.continent = h.continent

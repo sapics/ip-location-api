@@ -406,10 +406,9 @@ const updateDb = (_setting, noReload, sync) => {
 		runningUpdate = true
 		arg += ' ILA_RUNNING_UPDATE=true'
 	}
+	arg += ' ILA_SILENT=false'
 
-	if(arg){
-		cmd += ' ' + arg
-	}
+	cmd += ' ' + arg
 	if(sync){
 		try{
 			var stdout = execSync(cmd)
