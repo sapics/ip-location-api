@@ -16,7 +16,7 @@ for(var file of files){
 		src = src.replace(/\nconst __filename[^\n]+/, '')
 		src = src.replace(/\nconst __dirname[^\n]+/, '')
 		src = src.replace(/\n\s*\/\/[^\n]+/g, '\n')
-		src = src.replace(/\nawait reload\(\)/g, 'reload(undefined, true)')// remove top level await
+		src = src.replace(/\nawait reload\(true\)/g, 'reload(true, true)')// remove top level await
 		src = src.replace(/\nawait\s+[^\n]+/g, '\n')// remove top level await
 		src = src.replace(/\nexport\s+const\s+(\w+)/g, (m, p1) => {
 			exportList.push(p1)

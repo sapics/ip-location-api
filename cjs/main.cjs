@@ -8,7 +8,7 @@ const { countries, continents } = require('countries-list')
 const { CronJob } = require('cron')
 
 const { setting, setSetting, getSettingCmd, consoleLog, consoleWarn } = require('./setting.cjs')
-const { num37ToStr, getSmallMemoryFile, getZeroFill, aton6Start, aton4, getPostcodeFromDatabase } = require('./utils.cjs')
+const { num37ToStr, getSmallMemoryFile, aton6Start, aton4, getPostcodeFromDatabase } = require('./utils.cjs')
 
 const v4db = setting.v4
 const v6db = setting.v6
@@ -204,6 +204,9 @@ var updateJob
  */
 const reload = async (_setting, sync, _runningUpdate) => {
 	var curSetting = setting
+	if(_setting === true && curSetting.skipInitialReload){
+		return;
+	}
 	if(_setting){
 		var oldSetting = Object.assign({}, setting)
 		setSetting(_setting)
@@ -596,6 +599,6 @@ const setCountryInfo = (geodata) => {
 	}
 	return geodata
 }
-reload(undefined, true)
+reload(true, true)
 
 module.exports={lookup:lookup,lookupNumber:lookupNumber,lookupAny:lookupAny,setupWithoutReload:setupWithoutReload,clear:clear,reload:reload,watchDb:watchDb,stopWatchDb:stopWatchDb,updateDb:updateDb}

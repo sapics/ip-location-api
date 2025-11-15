@@ -29,6 +29,8 @@ const defaultSetting = {
 
 	browserType: false,
 	silent: false,
+
+	skipInitialReload: false,
 }
 
 const setting = {

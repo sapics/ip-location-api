@@ -8,7 +8,7 @@ import { countries, continents } from 'countries-list'
 import { CronJob } from 'cron'
 
 import { setting, setSetting, getSettingCmd, consoleLog, consoleWarn } from './setting.mjs'
-import { num37ToStr, getSmallMemoryFile, getZeroFill, aton6Start, aton4, getPostcodeFromDatabase } from './utils.mjs'
+import { num37ToStr, getSmallMemoryFile, aton6Start, aton4, getPostcodeFromDatabase } from './utils.mjs'
 
 const v4db = setting.v4
 const v6db = setting.v6
@@ -207,6 +207,9 @@ var updateJob
  */
 export const reload = async (_setting, sync, _runningUpdate) => {
 	var curSetting = setting
+	if(_setting === true && curSetting.skipInitialReload){
+		return;
+	}
 	if(_setting){
 		var oldSetting = Object.assign({}, setting)
 		setSetting(_setting)
@@ -603,4 +606,4 @@ const setCountryInfo = (geodata) => {
 	return geodata
 }
 
-await reload()
+await reload(true)
