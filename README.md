@@ -145,7 +145,7 @@ Conf key in `reload(conf)` is named with "LOWER CAMEL", CLI or ENV parameter is 
 | series | ILA_SERIES | GeoLite2 | By setting to "GeoIP2", you can use premium database "GeoIP2" |
 | language | ILA_LANGUAGE | en | You can choose "de", "en", "es", "fr", "ja", "pt-BR", "ru", "zh-CN". By changing, the language of "region1_name", "region2_name", "city" fields are changed |
 | silent | ILA_SILENT | false | true: deactivate unnecessary console.log |
-| skipInitialReload | ILA_SKIP_INITIAL_RELOAD | false | true: Skips the initial database setup, reducing startup time when you run reload separately. This also reduces build-time and memory usage in build environments. |
+| skipInitialReload | ILA_SKIP_INITIAL_RELOAD | false | true: Skips the initial database setup, reducing startup time when you run `reload` separately. This also reduces build-time and memory usage in build environments. |
 
 
 ## Update database
