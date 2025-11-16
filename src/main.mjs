@@ -207,8 +207,11 @@ var updateJob
  */
 export const reload = async (_setting, sync, _runningUpdate) => {
 	var curSetting = setting
-	if(_setting === true && curSetting.skipInitialReload){
-		return;
+	if(_setting === true){
+		if(curSetting.skipInitialReload){
+			return;
+		}
+		_setting = undefined
 	}
 	if(_setting){
 		var oldSetting = Object.assign({}, setting)
