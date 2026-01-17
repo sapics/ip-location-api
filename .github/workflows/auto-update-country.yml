@@ -3,6 +3,9 @@ on:
   schedule:
     - cron: '42 19 * * *'
   workflow_dispatch:
+permissions:
+  contents: write
+  id-token: write
 jobs:
   release:
     name: Auto database update browser-country
