@@ -23,8 +23,6 @@ jobs:
         run: npm run test
       - name: commit
         run: script/auto-update-geocode.sh
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: push changes
         uses: ad-m/github-push-action@master
         with:

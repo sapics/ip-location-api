@@ -7,7 +7,7 @@ if [ -z "$RES1" ]; then
 	git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
 	git config --local user.name "github-actions[bot]"
 	git commit -a -m "v${VERT} auto update ip database"
-	npm publish
+	npm publish --provenance --access public--provenance --access public
 fi
 
 cd ../..
@@ -19,5 +19,5 @@ if [ -z "$RES2" ]; then
 	git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
 	git config --local user.name "github-actions[bot]"
 	git commit -a -m "v${VERT} auto update ip database"
-	npm publish
+	npm publish --provenance --access public
 fi
