@@ -1,6 +1,6 @@
 {
   "name": "ip-location-api",
-  "version": "4.0.5",
+  "version": "4.0.6",
   "description": "Fast location lookup from IP address",
   "keywords": [
     "location",
@@ -109,7 +109,7 @@
     "dayjs": "^1.11.13",
     "fast-csv": "^5.0.1",
     "ip-address": "^9.0.5",
-    "yauzl": "^3.3.1"
+    "yauzl": "^3.4.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",

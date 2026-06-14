@@ -329,7 +329,8 @@ const downloadZip = async () => {
 	return new Promise((resolve, reject) => {
 		consoleLog('Decompressing', database.edition + '.zip')
 		stream.on('error', reject)
-		stream.on('end', () => {
+		dest.on('error', reject)
+		dest.on('finish', () => {
 			yauzl.open(zipPath, {lazyEntries: true}, (err, zipfile) => {
 				if(err) return reject(err)
 				zipfile.readEntry()
@@ -340,10 +341,13 @@ const downloadZip = async () => {
 						return (function(src){
 							zipfile.openReadStream(entry, (err, readStream) => {
 								if(err) return reject(err)
-								readStream.pipe(fsSync.createWriteStream(path.join(setting.tmpDataDir, src)))
-								readStream.on('end', () => {
+								const writeStream = fsSync.createWriteStream(path.join(setting.tmpDataDir, src))
+								readStream.on('error', reject)
+								writeStream.on('error', reject)
+								writeStream.on('finish', () => {
 									zipfile.readEntry()
 								})
+								readStream.pipe(writeStream)
 							})
 						})(src)
 					}
