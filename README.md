@@ -173,8 +173,8 @@ When you set "ILA_LICENSE_KEY=YOUR_GEOLITE2_LICENSE_KEY", it downloads GeoLite2 
 `YOUR_GEOLITE2_LICENSE_KEY` should be replaced by a valid GeoLite2 license key. Please [follow instructions](https://dev.maxmind.com/geoip/geoip2/geolite2/) provided by MaxMind to obtain a license key.
 
 When you set "ILA_IP_LOCATION_DB=YOUR_CHOOSEN_DATABSE", it downloads from the [ip-location-db](https://github.com/sapics/ip-location-db) (country type only).
-You can "YOUR_CHOOSEN_DATABSE" from [ip-location-db](https://github.com/sapics/ip-location-db) with country type. For example, "geolite2-geo-whois-asn" is wider IP range country database which is equivalent to GeoLite2 database result for GeoLite2 country covered IP range and geo-whois-asn-country for the other IP range. 
-The other example, "geo-whois-asn" is [CC0 licensed database](https://github.com/sapics/ip-location-db/tree/main/geo-asn-country), if you are unable to apply the GeoLite2 License.
+You can "YOUR_CHOOSEN_DATABSE" from [ip-location-db](https://github.com/sapics/ip-location-db) with country type. 
+For example, "user" is [CDLA-Permissive-2.0 licensed database](https://github.com/sapics/ip-location-db/tree/main/user-country), if you are unable to apply the GeoLite2 License.
 
 
 It takes a few minutes to create the database.

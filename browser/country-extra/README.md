@@ -47,7 +47,7 @@ If you do not need extra information about country, try to use [@iplookup/countr
 
 ## License
 
-Since each user download a partial database, we use the CC0 Licensed database [geo-whois-asn-country](https://github.com/sapics/ip-location-db/tree/main/geo-whois-asn-country) for ip to country mapping to avoid license problem.
+Since each user download a partial database, we use the CDLA-Permissive-2.0 Licensed database [user-country](https://github.com/sapics/ip-location-db/tree/main/user-country) for ip to country mapping to avoid license problem.
 
 To get extra information about country, we use [Countries](https://github.com/annexare/Countries) which is published under MIT license by [Annexare Studio](https://annexare.com/).
 

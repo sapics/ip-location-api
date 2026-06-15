@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.0
+
+Change ILA_IP_LOCATION_DB url, because the old url is deprecated and some bugs were found in the old database.
+
+
 ## 4.0.0
 
 Drop support for nodejs < 18.

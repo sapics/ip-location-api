@@ -92,7 +92,10 @@ export const update = async () => {
 }
 
 const ipLocationDb = async (db) => {
-	var preUrl = 'https://cdn.jsdelivr.net/npm/@ip-location-db/'+db+'-country/'+db+'-country'
+	if(db.includes('geo-')){
+		db = 'user'
+	}
+	var preUrl = 'https://github.com/sapics/ip-location-db/releases/download/latest/' + db + '-country'
 	var urls = [preUrl+'-ipv4.csv', preUrl+'-ipv6.csv'], fileNames = []
 	for(var url of urls){
 		fileNames.push(await _ipLocationDb(url))
