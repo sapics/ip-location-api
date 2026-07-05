@@ -345,7 +345,9 @@ export const reload = async (_setting, sync, _runningUpdate) => {
 
 	if(!updateJob && setting.autoUpdate){
 		updateJob = new CronJob(setting.autoUpdate, () => {
-			updateDb().finally(() => {})
+			updateDb().catch(err => {
+				consoleWarn('ip-location-api auto update failed', err)
+			})
 		}, null, true, 'UTC')
 	} else if(updateJob && !setting.autoUpdate){
 		updateJob.stop()
